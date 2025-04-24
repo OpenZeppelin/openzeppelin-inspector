@@ -67,8 +67,8 @@ dependencies = [
 inspector = "inspector.main:main"
 
 [project.urls]
-"Homepage" = "https://github.com/OpenZeppelin/contract-inspector"
-"Bug Tracker" = "https://github.com/OpenZeppelin/contract-inspector/issues"
+"Homepage" = "https://github.com/OpenZeppelin/openzeppelin-inspector"
+"Bug Tracker" = "https://github.com/OpenZeppelin/openzeppelin-inspector/issues"
 
 # defines which package(s) to build
 [tool.setuptools.packages.find]
