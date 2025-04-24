@@ -203,4 +203,4 @@ For information on creating and integrating your own scanners, refer to the [Sca
 
 ## License
 
-*License information would go here*
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](./LICENSE) file for details.
