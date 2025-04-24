@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 import logging
 from logging import Logger
 
-from inspector.cli.capabilities.exceptions import (
+from .exceptions import (
     InvalidScannerDirectoryError,
     InstallationError,
 )

@@ -11,12 +11,12 @@ from typing import Dict, Any, Optional
 import logging
 from logging import Logger
 
-from inspector.cli.capabilities.exceptions import (
+from .exceptions import (
     InvalidScannerDirectoryError,
     InstallationError,
     DependencyInstallationError,
 )
-from inspector.cli.capabilities.helpers import (
+from .helpers import (
     _remove_dir_or_link,
     _remove_existing_installation,
 )
