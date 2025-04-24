@@ -32,7 +32,7 @@ These options are available across multiple commands:
 
 - `--dev`: Enable development mode
 - `--debug`: Enable debug logging
-- `--log-level {debug,info,warn,error,critical}`: Set log level (defaults to 'warn'; 'debug' in debug mode)
+- `--log-level {debug,info,warn,error,critical}`: Set log level (defaults to `warn`; `debug` in debug mode)
 
 ### Scan Mode
 
@@ -195,7 +195,7 @@ inspector scanner list --detailed
 
 OpenZeppelin Inspector supports a plugin system for custom scanners. Scanners can be implemented as Python modules or standalone executables.
 
-For information on creating and integrating your own scanners, refer to the [Scanner Integration Guide](docs/scanner_integration/scanner-integration.mdanner-integration.md).
+For information on creating and integrating your own scanners, refer to the [Scanner Integration Guide](docs/scanner_integration/overview.md).
 
 ## Contributing
 

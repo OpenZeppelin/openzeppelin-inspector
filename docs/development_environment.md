@@ -15,8 +15,8 @@ Before setting up your development environment, ensure you have the following in
 First, clone the OpenZeppelin Inspector repository:
 
 ```bash
-git clone https://github.com/OpenZeppelin/inspector.git
-cd inspector
+git clone https://github.com/OpenZeppelin/openzeppelin-inspector.git
+cd openzeppelin-inspector
 ```
 
 ## Setting Up a Virtual Environment

@@ -4,11 +4,11 @@ OpenZeppelin Inspector can be installed and used in two ways:
 
 ## Method 1: Using Pre-built Executables
 
-The simplest way to install OpenZeppelin Inspector is to download the pre-built executable artifacts published on the [GitHub Releases](https://github.com/OpenZeppelin/contract-inspector/releases) page.
+The simplest way to install OpenZeppelin Inspector is to download the pre-built executable artifacts published on the [GitHub Releases](https://github.com/OpenZeppelin/openzeppelin-inspector/releases) page.
 
 ### Steps:
 
-1. Visit the [Releases page](https://github.com/OpenZeppelin/contract-inspector/releases) on GitHub
+1. Visit the [Releases page](https://github.com/OpenZeppelin/openzeppelin-inspector/releases) on GitHub
 2. Download the appropriate executable for your operating system:
    - `inspector-linux` for Linux
    - `inspector-macos` for macOS
