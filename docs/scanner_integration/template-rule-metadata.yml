@@ -1,0 +1,102 @@
+# Example Template Detector Metadata Configuration
+# 
+# This YAML file serves as a comprehensive example of how to define detector metadata and templates
+# for integration with the OpenZeppelin Inspector static analysis framework.
+#
+# Purpose:
+# - Demonstrates the structure and format of Detector metadata for scanner integration
+# - Provides examples of all available template fields and their usage
+# - Shows how template variables ($variable) can be used to create dynamic issue reports
+#
+# Usage:
+# - Use this as a reference when creating your own detector metadata configurations
+# - Copy and modify the template section for your specific detection rules
+# - Refer to templates.md for detailed documentation on template authoring
+#
+# This example uses demonstrates how different template fields work 
+# together to create clear, context-aware issue reports in various scenarios.
+
+metadata:
+  # The unique id used to identify this detector
+  id: example-detector
+  # A unique, unchanging id associated with each detector
+  uid: 4D8rfs
+  # Brief description of what the detector is for
+  description: example explanation of what the detector identifies
+  # Long description of what the detector is for
+  description_full: a lengthy description, with some technical details and justification, for the issue detected
+
+  # A list of URIs that may be helpful for better understanding the issue detected
+  references:
+    - "https://docs.example.com/security/best-practices"
+
+  report:
+    # Severity in regard to the issue and report [critical, high, medium, low, note, info]
+    severity: "info"
+    # Tags to associate with the detector
+    tags: ["optimization", "gas"]
+
+    #### Available template placeholders ####
+    # $file_name - The name of the file that the instance was found in e.g. require-missing-message.sol
+    # $file_path - The full path to the file that the instance was found in
+    # $instance_line - The line number of the instance that was found e.g. 123
+    # $instance_line_start - The beginning of the range of lines that the instance was found in e.g. If the instance was found across lines 120-123, then this would be the number 120
+    # $instance_line_end - The end of the range of lines that the instance was found in e.g. If the instance was found across lines 120-123, then this would be the number 123
+    # $instance_line_link - The full link, including the line number or range, to the instance e.g. ./path:7 or ./path:7-9
+    # $instance_line_count - The number of lines in an instance of a detector match
+    # $codebase_path - Root path of the codebase.
+    # $total_instances - The number of instances in the codebase that matched the detector
+    # $total_files - The number of files in the codebase that had at least one match of the detector
+    # $total_lines - The number of lines in the codebase that were affected by (included in) the detector match
+    # $<METAVARIABLE> - Any metavariable the detector intentionally stores for later use (only available in instance-specific templates like body-list-item-*)
+    template:
+      # Template Field Precedence Rules:
+      # 1. For titles: title-{single/multiple}-instance > title > default
+      # 2. For body: body-{single/multiple}-file-{single/multiple}-instance > body > empty string
+      # 3. For list items: body-list-item-always > body-list-item-{single/multiple}-file > body-list-item > default
+      # 4. Other fields (opening, closing, body-list-item-intro) have no precedence rules
+
+      # A common title for either a single instance or multiple-instances issue
+      title: "Missing Require Message in $file_name"
+
+      # A title for when there is exactly one instance (takes precedence over common title)
+      title-single-instance: "Missing Require Message on Line $instance_line in $file_name"
+
+      # A title for when there are many instances (takes precedence over common title)
+      title-multiple-instance: "$total_instances Missing Require Messages in $file_name"
+
+      # A portion of the body of the issue that is prepended regardless of how many instances/files were found
+      opening: "The codebase contains require statements without error messages. This can make debugging difficult when transactions revert."
+
+      # Common issue body text (used if no specific body template is provided)
+      body: "There are $total_instances instances of require statements without error messages across $total_files files."
+
+      # The body of the issue when only a single instance was found (highest precedence)
+      body-single-file-single-instance: "There is a require statement without an error message in `$file_name` on line $instance_line."
+
+      # The body of the issue when multiple instances were found in a only single file (highest precedence)
+      body-single-file-multiple-instance: "There are $total_instances require statements without error messages in `$file_name`."
+
+      # The body of the issue when a single instance was found across multiple files (highest precedence)
+      body-multiple-file-single-instance: "There is a require statement without an error message that spans multiple files."
+
+      # The body of the issue when multiple instances were found across multiple files (highest precedence)
+      body-multiple-file-multiple-instance: "There are $total_instances require statements without error messages across $total_files files."
+
+      # The text that precedes the list of instances where the issue was found. Defaults to "For instance:".
+      body-list-item-intro: "The following instances were found:"
+
+      # The body of a list item for multiple instances (lowest precedence)
+      body-list-item: "* On line $instance_line of `$file_name`: `require(condition)`"
+
+      # The body of a list item for multiple instances in a single file (medium precedence)
+      body-list-item-single-file: "* Line $instance_line: `require($_condition)`"
+
+      # The body of a list item for multiple instances across multiple files (medium precedence)
+      body-list-item-multiple-file: "* In `$file_name` on line $instance_line: `require($_condition)`"
+
+      # Instance enumeration that should always be used if present (highest precedence)
+      body-list-item-always: "* [Line $instance_line]($instance_line_link) in `$file_name`: `require($_condition)`"
+
+      # The closing at the end of the issue write up that specifies how to fix or further clarifies the issue
+      closing: "Consider adding descriptive error messages to all require statements to improve debugging and user experience."
