@@ -1,0 +1,46 @@
+name: Auto Formatter
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  black:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+        with:
+          token: ${{ secrets.WORKFLOW_GIT_ACCESS_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+
+      - name: Set up Python
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: "3.11"
+
+      - name: Install Black
+        run: |
+          pip install --no-cache-dir --disable-pip-version-check black==23.3.0
+
+      - name: Run Black formatter
+        run: black .
+
+      - name: Check for code changes
+        id: verify_diff
+        run: |
+          if ! git diff --quiet; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push changes
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config --local user.email "security-tooling[bot]@openzeppelin.com"
+          git config --local user.name "security-tooling[bot]"
+          git commit -am "chore: automated code formatting"
+          git push origin ${{ github.head_ref }}

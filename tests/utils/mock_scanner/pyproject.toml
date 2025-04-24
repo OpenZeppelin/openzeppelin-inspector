@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mock_scanner"
+version = "1.0.0"
+dependencies = [
+    "typing_extensions"
+]
+
+# defines which package(s) to build
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mock_scanner*"]
+
+[tool.setuptools.package-data]
+"mock_scanner.utils" = ["**/*.json"]
+
+[tool.pytest.ini_options]
+addopts = "-v"
+
+[tool.openzeppelin.inspector]
+scanner_name = "mock-scanner"
+scanner_org = "OpenZeppelin"
+scanner_description = "A mock scanner for testing purposes"
+scanner_extensions = [".sol"]

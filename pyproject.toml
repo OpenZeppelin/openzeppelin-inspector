@@ -1,0 +1,77 @@
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+# We are using setuptools to build the distribution
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inspector"
+dynamic = ["version"]
+description = "A static analysis report generation tool for Solidity files"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [
+    { name = "Andrew Anderson", email = "andrew@openzeppelin.com" },
+    { name = "Sebastian Fabry", email = "sebastian.fabry@openzeppelin.com" },
+    { name = "Jeremy Felder", email = "jeremy@openzeppelin.com" },
+    { name = "Nicolás García ", email = "nicolas.garcia@openzeppelin.com" },
+    { name = "Clark Henry", email = "clark@openzeppelin.com" },
+    { name = "Steven Thornton", email = "steven.thornton@openzeppelin.com" },
+    { name = "Franco Valencia", email = "franco.valencia@openzeppelin.com" },
+    { name = "Felix Wegener", email = "felix@openzeppelin.com" },
+    { name = "Josep Chetrit ", email = "josep.chetrit@openzeppelin.com" },
+    { name = "Georgii Plotnikov", email = "georgii.plotnikov@openzeppelin.com" },
+    { name = "Gianfranco Bazzani", email = "gianfranco.bazzani@openzeppelin.com" },
+]
+
+dependencies = [
+    "argcomplete==3.6.2", # used to provide autocomplete for the cli
+    "tabulate==0.9.0", # used to print the coverage table
+    "termcolor==2.5.0", # used to print the coverage table with colors
+    "halo==0.0.31", # used to provide cli status "spinners" during long-running tasks
+    "pyyaml==6.0.2", # used to read yaml (metadata) files
+]
+
+# Creates a CLI command that invokes the entry-point function 
+[project.scripts]
+# command = entry-point
+inspector = "inspector.main:main"
+
+[project.urls]
+"Homepage" = "https://github.com/OpenZeppelin/contract-inspector"
+"Bug Tracker" = "https://github.com/OpenZeppelin/contract-inspector/issues"
+
+# defines which package(s) to build
+[tool.setuptools.packages.find]
+# base directory to look for packages
+where = ["src"]
+include = ["inspector*"]
+
+
+[tool.setuptools.package-data]
+"inspector.detector_metadata" = ["*.yml"]
+"*" = ["*.sol"]
+
+[tool.setuptools.dynamic]
+version = { attr = "inspector.__version__" }
+
+[tool.black]
+line-length = 88
+exclude = '''
+(
+    /(
+        \.git
+        | \.venv
+        | \.env
+        | \.eggs
+        | \.mypy_cache
+        | \.pytest_cache
+        | _build
+        | buck-out
+        | build
+        | dist
+        | src/inspector/dependencies
+        | venv
+    )/
+)
+'''
