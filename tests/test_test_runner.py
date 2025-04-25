@@ -238,12 +238,12 @@ class TestTestRunner(unittest.TestCase):
         """Test annotation removal with edge cases."""
         test_content = """
         // :true-positive-here: test_detector // :true-negative-here: test_detector
-        // :disable-detector-test: test_detector // :true-positive-here: test_detector
+        // :true-positive-here: test_detector :temporarily-invert-detector-test:
         """
         cleaned = _remove_test_annotations(test_content)
         self.assertNotIn(":true-positive-here:", cleaned)
         self.assertNotIn(":true-negative-here:", cleaned)
-        self.assertNotIn(":disable-detector-test:", cleaned)
+        self.assertNotIn(":temporarily-invert-detector-test:", cleaned)
 
     def test_run_detector_tests_with_no_detectors(self):
         """Test running tests with no available detectors."""
