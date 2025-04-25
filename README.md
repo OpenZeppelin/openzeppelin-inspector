@@ -1,6 +1,6 @@
 # OpenZeppelin Inspector
 
-OpenZeppelin Inspector is a powerful tool for scanning web3 projects and smart contracts for security issues and vulnerabilities. It provides a flexible framework for managing and executing various code analysis scanners, supporting both Python-based and executable scanners.
+OpenZeppelin Inspector is a powerful tool for scanning web3 projects and smart contracts for security issues and vulnerabilities. It provides a flexible framework for managing and executing various code analysis scanners.
 
 ## Purpose
 
@@ -193,9 +193,9 @@ inspector scanner list --detailed
 
 ## Scanner Development
 
-OpenZeppelin Inspector supports a plugin system for custom scanners. Scanners can be implemented as Python modules or standalone executables.
+OpenZeppelin Inspector supports a plugin system for custom scanners. Scanners are implemented as standalone executables.
 
-For information on creating and integrating your own scanners, refer to the [Scanner Integration Guide](docs/scanner_integration/scanner-integration.mdanner-integration.md).
+For information on creating and integrating your own scanners, refer to the [Scanner Integration Guide](docs/scanner_integration/overview.md).
 
 ## Contributing
 

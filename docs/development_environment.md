@@ -74,16 +74,6 @@ inspector scanner install /path/to/scanner --dev
 
 This creates a symlink to the scanner directory instead of copying the files, allowing you to make changes to the scanner code that are immediately reflected (or, in the case of binary scanners, reflected on re-compile) when running the Inspector.
 
-### Python Scanner Development
-
-For Python scanners, the development mode:
-
-1. Creates a symlink to the scanner directory
-2. Sets up a virtual environment for the scanner
-3. Installs the scanner package in editable mode using `pip install -e`
-4. Attempts to use `requirements-dev.txt` if available, falling back to `requirements.txt`
-
-This allows you to modify the scanner code and have changes reflected immediately without reinstalling.
 
 ### Executable Scanner Development
 
@@ -155,12 +145,10 @@ The built executable will be in the `dist` directory.
 If you encounter issues with scanner installation in development mode, be sure to use the `--debug` flag when running Inspector:
 
 1. Check that the scanner directory has the correct structure:
-   - Python scanners should have a `pyproject.toml` file
-   - Executable scanners should have a single executable file at the root
+   - Scanners should have a single executable file at the root
 
 2. Ensure the scanner has the required metadata:
-   - Python scanners should have a `[tool.openzeppelin.inspector]` section in `pyproject.toml`
-   - Executable scanners should support a `metadata` mode
+   - Scanners should support a `metadata` mode
 
 ### Testing Issues
 

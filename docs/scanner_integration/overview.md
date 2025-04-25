@@ -4,106 +4,18 @@ This guide explains how to create and integrate scanners with OpenZeppelin Inspe
 
 ## Scanner Types
 
-Inspector supports two types of scanners:
-
-1. **Python Scanners**: Implemented as Python packages that extend the [`BaseScanner` class](../../src/inspector/scanners/base_scanner.py)
-2. **Executable Scanners**: Standalone executables that follow a specific command-line interface
+Inspector supports executable scanners, which are standalone executables that follow a specific command-line interface.
 
 ## Requirements for Scanner Compatibility
 
 For a scanner to be compatible with Inspector, it must:
 
-1. Be either a Python package or an executable
-2. Implement the required interface (Python) or command-line arguments (executable)
+1. Be an executable
+2. Implement the required command-line arguments
 3. Return findings in the expected format
 4. Be installable via the Inspector scanner installation mechanism
 
-## Implementing a Python Scanner
-
-### 1. Create a Python Package
-
-Create a Python package with the following structure:
-
-```
-my_scanner/
-├── __init__.py
-├── scanner.py
-└── pyproject.toml
-```
-
-### 2. Implement the BaseScanner Class
-
-In `scanner.py`, implement the `BaseScanner` abstract base class:
-
-```python
-from pathlib import Path
-from inspector.scanners.base_scanner import BaseScanner
-from inspector.models.minimal import MinimalFinding
-
-
-class MyScanner(BaseScanner):
-    def __init__(self):
-        super().__init__()
-        # Initialize your scanner here
-
-    def _get_scanner_name(self) -> str:
-        """Return a unique identifier for this scanner."""
-        return "my_scanner"
-
-    def get_supported_detector_metadata(self) -> dict[str, dict]:
-        """Return metadata for detectors supported by this scanner."""
-        return {
-            "detector1": {
-                "name": "Detector 1",
-                "description": "Detects issue type 1",
-                "severity": "HIGH",
-                "tags": ["security", "tag1"]
-            }
-        }
-
-
-    def get_root_test_dirs(self) -> list[Path]:
-        """Return test directories provided by this scanner."""
-        return [Path(__file__).parent / "tests"]
-
-    def run(self, detector_names: list[str], code_paths: list[Path], project_root: Path) -> dict[str, MinimalFinding]:
-        """Execute the scan operation on provided code files using specified detectors."""
-        findings = {}
-
-        # Implement your scanning logic here
-        # For each finding, create a Finding object and add it to the findings dictionary
-
-        return findings
-```
-
-### 3. Create a pyproject.toml File
-
-In `pyproject.toml`, define your package and its dependencies:
-
-```toml
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "my_scanner"
-version = "1.0.0"
-description = "My scanner for OpenZeppelin Inspector"
-requires-python = ">=3.12"
-dependencies = [
-    # List your dependencies here
-]
-
-[tool.openzeppelin.inspector]
-scanner_name = "my_scanner"
-scanner_org = "OpenZeppelin"
-scanner_description = "Static analyzer for Solidity projects and source code"
-scanner_extensions = [".sol"]
-```
-
-The `tool.openzeppelin.inspector` section is crucial as it tells Inspector about your scanners capabilities and identifier. Inspector looks for this specific key in the pyproject.toml file to detect Python scanners.
-
-## Implementing an Executable Scanner
+## Implementing a Scanner
 
 ### 1. Create an Executable
 
@@ -203,18 +115,6 @@ Output:
 ## Installing Your Scanner
 
 Once you've implemented your scanner, you can install it using the Inspector scanner installation mechanism:
-
-### Python Scanner
-
-```bash
-# Install from a local directory
-inspector scanner install /path/to/my_scanner
-
-# Install in development mode (for testing)
-inspector scanner install /path/to/my_scanner --dev
-```
-
-### Executable Scanner
 
 ```bash
 # Install from a local directory
