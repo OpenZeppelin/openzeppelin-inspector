@@ -12,6 +12,11 @@ on:
           - major
         default: 'minor'
         required: false
+      skip_version_increment:
+        description: "Skip incrementing version and attach/replace artifacts to current release"
+        type: boolean
+        default: false
+        required: false
 
 jobs:
   bump_version:
@@ -32,30 +37,36 @@ jobs:
           version_location="src/inspector/__init__.py"
           patch_type=${{ inputs.version_type }}
           version=$(grep -Eo '[0-9]+(\.[0-9]+)+' $version_location)
+          skip_increment=${{ inputs.skip_version_increment }}
 
-          if [ $patch_type == 'patch' ]; then
-            version_bumped=$(awk -F. '/[0-9]+\./{$3++;print}' OFS=. <<< "$version")
-            run_self_test=false
-            echo "Preparing new PATCH version"
-          elif [ $patch_type == 'minor' ]; then
-            version_bumped=$(awk -F. '/[0-9]+\./{$2++;$3=0;print}' OFS=. <<< "$version")
-            run_self_test=true
-            echo "Preparing new MINOR version"
-          elif [ $patch_type == 'major' ]; then
-            version_bumped=$(awk -F. '/[0-9]+\./{$1++;$2=0;$3=0;print}' OFS=. <<< "$version")
-            run_self_test=true
-            echo "Preparing new MAJOR version"
+          if [ "$skip_increment" == "true" ]; then
+            echo "Skipping version increment as requested"
+            version_bumped=$version
           else
-            echo "Unsupported version type: $patch_type. Please choose from patch, minor, or major."
+            if [ $patch_type == 'patch' ]; then
+              version_bumped=$(awk -F. '/[0-9]+\./{$3++;print}' OFS=. <<< "$version")
+              echo "Preparing new PATCH version"
+            elif [ $patch_type == 'minor' ]; then
+              version_bumped=$(awk -F. '/[0-9]+\./{$2++;$3=0;print}' OFS=. <<< "$version")
+              echo "Preparing new MINOR version"
+            elif [ $patch_type == 'major' ]; then
+              version_bumped=$(awk -F. '/[0-9]+\./{$1++;$2=0;$3=0;print}' OFS=. <<< "$version")
+              echo "Preparing new MAJOR version"
+            else
+              echo "Unsupported version type: $patch_type. Please choose from patch, minor, or major."
+            fi
+
+            echo "Old Version: ${version}"
+            echo "New Version: ${version_bumped}"
+            sed "s|__version__ = \"$version\"|__version__ = \"$version_bumped\"|" -i $version_location
           fi
 
-          echo "Old Version: ${version}"
-          echo "New Version: ${version_bumped}"
-          sed "s|__version__ = \"$version\"|__version__ = \"$version_bumped\"|" -i $version_location
+          echo "current_version=$version" >> $GITHUB_OUTPUT
           echo "new_version=$version_bumped" >> $GITHUB_OUTPUT
-          echo "run_self_test=$run_self_test" >> $GITHUB_OUTPUT
+          echo "skip_increment=$skip_increment" >> $GITHUB_OUTPUT
 
       - name: Create tag
+        if: ${{ steps.bump.outputs.skip_increment != 'true' }}
         run: |
           git config --local user.email "build_bot@openzeppelin.com"
           git config --local user.name "build_whl[bot]"
@@ -85,6 +96,12 @@ jobs:
             arch: amd64
             target_arch: ""
 
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+            target_arch: ""
+
           # Windows AMD64
           - os: windows-latest
             platform: windows
@@ -96,7 +113,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: v${{ needs.bump_version.outputs.new_version }}
+          ref: ${{ needs.bump_version.outputs.skip_increment == 'true' && format('v{0}', needs.bump_version.outputs.current_version) || format('v{0}', needs.bump_version.outputs.new_version) }}
 
       - uses: actions/setup-python@v5
         with:
@@ -115,10 +132,11 @@ jobs:
       - name: Rename executable for platform
         shell: bash
         run: |
+          VERSION=${{ needs.bump_version.outputs.skip_increment == 'true' && needs.bump_version.outputs.current_version || needs.bump_version.outputs.new_version }}
           if [ "${{ matrix.platform }}" = "windows" ]; then
-            mv dist/inspector.exe dist/inspector-${{ needs.bump_version.outputs.new_version }}-${{ matrix.platform }}-${{ matrix.arch }}.exe
+            mv dist/inspector.exe dist/inspector-${VERSION}-${{ matrix.platform }}-${{ matrix.arch }}.exe
           else
-            mv dist/inspector dist/inspector-${{ needs.bump_version.outputs.new_version }}-${{ matrix.platform }}-${{ matrix.arch }}
+            mv dist/inspector dist/inspector-${VERSION}-${{ matrix.platform }}-${{ matrix.arch }}
           fi
 
       - name: Upload executable artifact
@@ -126,7 +144,7 @@ jobs:
         with:
           name: executable-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            dist/inspector-${{ needs.bump_version.outputs.new_version }}-${{ matrix.platform }}-${{ matrix.arch }}*
+            dist/inspector-*-${{ matrix.platform }}-${{ matrix.arch }}*
 
   create_release:
     name: Create Release
@@ -136,21 +154,48 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: v${{ needs.bump_version.outputs.new_version }}
+          ref: ${{ needs.bump_version.outputs.skip_increment == 'true' && format('v{0}', needs.bump_version.outputs.current_version) || format('v{0}', needs.bump_version.outputs.new_version) }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Create release
+      - name: Create or update release
         run: |
-          gh release create v${{ needs.bump_version.outputs.new_version }} \
-          artifacts/executable-linux-amd64/* \
-          artifacts/executable-macos-amd64/* \
-          artifacts/executable-windows-amd64/* \
-          --generate-notes \
-          --title "v${{ needs.bump_version.outputs.new_version }}" \
-          --draft
+          VERSION=${{ needs.bump_version.outputs.skip_increment == 'true' && needs.bump_version.outputs.current_version || needs.bump_version.outputs.new_version }}
+          TAG="v${VERSION}"
+
+          # Check if release already exists
+          if gh release view $TAG &>/dev/null; then
+            if [ "${{ needs.bump_version.outputs.skip_increment }}" == "true" ]; then
+              echo "Updating existing release $TAG"
+              # Delete existing assets to replace them
+              for asset in $(gh release view $TAG --json assets -q '.assets[].name'); do
+                gh release delete-asset $TAG $asset -y
+              done
+
+              # Upload new assets to existing release
+              gh release upload $TAG \
+              artifacts/executable-linux-amd64/* \
+              artifacts/executable-macos-amd64/* \
+              artifacts/executable-macos-arm64/* \
+              artifacts/executable-windows-amd64/*
+            else
+              echo "Error: Release $TAG already exists but we're not in skip_increment mode"
+              exit 1
+            fi
+          else
+            echo "Creating new release $TAG"
+            # Create new release
+            gh release create $TAG \
+            artifacts/executable-linux-amd64/* \
+            artifacts/executable-macos-amd64/* \
+            artifacts/executable-macos-arm64/* \
+            artifacts/executable-windows-amd64/* \
+            --generate-notes \
+            --title "$TAG" \
+            --draft
+          fi
         env:
           GH_TOKEN: ${{ github.token }}
