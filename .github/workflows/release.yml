@@ -25,6 +25,8 @@ jobs:
     if: (github.actor != 'dependabot[bot]')
     outputs:
       new_version: ${{ steps.bump.outputs.new_version }}
+      skip_increment: ${{ steps.bump.outputs.skip_increment }}
+      current_version: ${{ steps.bump.outputs.current_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
