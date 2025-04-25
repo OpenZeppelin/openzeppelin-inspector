@@ -776,11 +776,11 @@ def _remove_test_annotations(content: str) -> str:
     for line in lines:
         cleaned_line = line
 
-        # Check for test markers and disable-detector-test annotation
+        # Check for test markers and temporarily-invert-detector-test annotation
         markers_to_check = [
             marker for marker_list in TEST_MARKERS.values() for marker in marker_list
         ]
-        markers_to_check.append(":disable-detector-test:")
+        markers_to_check.append(":temporarily-invert-detector-test:")
 
         for marker in markers_to_check:
             if marker in cleaned_line:
