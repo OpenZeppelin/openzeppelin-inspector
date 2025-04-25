@@ -38,7 +38,8 @@ In `scanner.py`, implement the `BaseScanner` abstract base class:
 ```python
 from pathlib import Path
 from inspector.scanners.base_scanner import BaseScanner
-from inspector.models.finding_models import Finding
+from inspector.models.minimal import MinimalFinding
+
 
 class MyScanner(BaseScanner):
     def __init__(self):
@@ -49,14 +50,6 @@ class MyScanner(BaseScanner):
         """Return a unique identifier for this scanner."""
         return "my_scanner"
 
-    def get_scanner_version(self) -> str:
-        """Return the version of this scanner."""
-        return "1.0.0"
-
-    def get_scanner_description(self) -> str:
-        """Return a human-readable description of this scanner."""
-        return "My scanner that detects security issues in code."
-
     def get_supported_detector_metadata(self) -> dict[str, dict]:
         """Return metadata for detectors supported by this scanner."""
         return {
@@ -65,28 +58,15 @@ class MyScanner(BaseScanner):
                 "description": "Detects issue type 1",
                 "severity": "HIGH",
                 "tags": ["security", "tag1"]
-            },
-            "detector2": {
-                "name": "Detector 2",
-                "description": "Detects issue type 2",
-                "severity": "MEDIUM",
-                "tags": ["security", "tag2"]
             }
         }
 
-    def get_supported_detector_names(self) -> tuple:
-        """Return names of detectors supported by this scanner."""
-        return ("detector1", "detector2")
-
-    def get_supported_file_extensions(self) -> tuple:
-        """Return file extensions this scanner can analyze."""
-        return (".sol", ".js")
 
     def get_root_test_dirs(self) -> list[Path]:
         """Return test directories provided by this scanner."""
         return [Path(__file__).parent / "tests"]
 
-    def run(self, detector_names: list[str], code_paths: list[Path], project_root: Path) -> dict[str, Finding]:
+    def run(self, detector_names: list[str], code_paths: list[Path], project_root: Path) -> dict[str, MinimalFinding]:
         """Execute the scan operation on provided code files using specified detectors."""
         findings = {}
 
@@ -148,20 +128,32 @@ Your executable must output JSON to stdout in the following format for `scan`:
 
 ```json
 {
-  "detector1": {
-    "findings": [
-      {
-        "file": "/path/to/file1.sol",
-        "line": 42,
-        "description": "Security issue found",
-        "severity": "HIGH",
-        "confidence": "HIGH",
-        "recommendation": "Fix the issue by doing X"
-      }
-    ]
-  },
-  "detector2": {
-    "findings": []
+  "errors": [],
+  "scanned": [
+    "/relative/path/to/scanned_file.sol"
+  ],
+  "detector_responses": {
+    "detector-id": {
+      "findings": [
+        {
+          "instances": [
+            {
+              "path": "/relative/path/to/scanned_file.sol",
+              "offset_start": 357,
+              "offset_end": 364,
+              "fixes": [],
+              "extra": {
+                "metavars": {
+                  "CONTRACT_NAME": "Contract"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "metadata": {}
+    }
   }
 }
 ```
@@ -181,21 +173,30 @@ Output:
   "name": "my_scanner",
   "version": "1.0.0",
   "description": "My scanner that detects security issues in code",
-  "detectors": {
-    "detector1": {
-      "name": "Detector 1",
+  "org": "My organization",
+  "extensions": [
+    ".sol",
+    ".js"
+  ],
+  "detectors": [
+    {
+      "id": "detector-one",
+      "uid": "XYZ123",
       "description": "Detects issue type 1",
       "severity": "HIGH",
-      "tags": ["security", "tag1"]
-    },
-    "detector2": {
-      "name": "Detector 2",
-      "description": "Detects issue type 2",
-      "severity": "MEDIUM",
-      "tags": ["security", "tag2"]
+      "tags": [
+        "security",
+        "tag1"
+      ],
+      "template": {
+        "title": "Some Interesting Issue",
+        "opening": "This issue is dangerous, because of XYZ.",
+        "body-list-item-intro": "The following instances of this issue were found in the code:",
+        "body-list-item-always": "- On line $instance_line of [`$file_name`]($instance_line_link)",
+        "closing": "Consider fixing this issue by checking for XYZ before execution."
+      }
     }
-  },
-  "supported_extensions": [".sol", ".js"]
+  ]
 }
 ```
 
