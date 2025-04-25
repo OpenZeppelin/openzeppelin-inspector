@@ -1,3 +1,8 @@
+"""
+DISCLAIMER: Python scanner integrations are experimental and are not supported.
+This functionality is used internally and is not intended for external use.
+"""
+
 import importlib
 import inspect
 import os
