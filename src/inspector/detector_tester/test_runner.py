@@ -104,9 +104,13 @@ def _process_test_file(filepath: Path, detector_name: str) -> TestResult | None:
                             continue
                         target = _get_target_line(idx, marker)
                         if marker_type == "positive":
-                            (negatives if is_temporarily_inverted else positives).append(target)
+                            (
+                                negatives if is_temporarily_inverted else positives
+                            ).append(target)
                         else:
-                            (positives if is_temporarily_inverted else negatives).append(target)
+                            (
+                                positives if is_temporarily_inverted else negatives
+                            ).append(target)
         return TestResult(true_positives=positives, true_negatives=negatives)
     except UnicodeDecodeError:
         logger.warning("Skipping %s due to Unicode decode error", filepath)
