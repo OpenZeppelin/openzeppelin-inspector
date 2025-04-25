@@ -1,0 +1,86 @@
+# Environment variables and secrets
+.env
+.env.*
+.secrets
+*.pem
+*.key
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+pythonenv*/
+
+# Python build artifacts and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Project specific
+vendor_output/*.json
+unzip/
+bin/
+pyvenv.cfg
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+*.sql
+
+# Docker
+Dockerfile*
+.docker/
+docker-compose*.yml
+.dockerignore
+
+# Testing and coverage
+.coverage
+.tox/
+.pytest_cache/
+htmlcov/
+.hypothesis/
+
+# Documentation
+docs/_build/
+site/
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+*~
+
+# Project specific
+inspector_output*

@@ -1,0 +1,156 @@
+name: Create Tag and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "The type of version you want to release"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: 'minor'
+        required: false
+
+jobs:
+  bump_version:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_GIT_ACCESS_TOKEN }}
+
+      - name: Bump version
+        id: bump
+        run: |
+          version_location="src/inspector/__init__.py"
+          patch_type=${{ inputs.version_type }}
+          version=$(grep -Eo '[0-9]+(\.[0-9]+)+' $version_location)
+
+          if [ $patch_type == 'patch' ]; then
+            version_bumped=$(awk -F. '/[0-9]+\./{$3++;print}' OFS=. <<< "$version")
+            run_self_test=false
+            echo "Preparing new PATCH version"
+          elif [ $patch_type == 'minor' ]; then
+            version_bumped=$(awk -F. '/[0-9]+\./{$2++;$3=0;print}' OFS=. <<< "$version")
+            run_self_test=true
+            echo "Preparing new MINOR version"
+          elif [ $patch_type == 'major' ]; then
+            version_bumped=$(awk -F. '/[0-9]+\./{$1++;$2=0;$3=0;print}' OFS=. <<< "$version")
+            run_self_test=true
+            echo "Preparing new MAJOR version"
+          else
+            echo "Unsupported version type: $patch_type. Please choose from patch, minor, or major."
+          fi
+
+          echo "Old Version: ${version}"
+          echo "New Version: ${version_bumped}"
+          sed "s|__version__ = \"$version\"|__version__ = \"$version_bumped\"|" -i $version_location
+          echo "new_version=$version_bumped" >> $GITHUB_OUTPUT
+          echo "run_self_test=$run_self_test" >> $GITHUB_OUTPUT
+
+      - name: Create tag
+        run: |
+          git config --local user.email "build_bot@openzeppelin.com"
+          git config --local user.name "build_whl[bot]"
+          git add src/inspector/__init__.py
+          git commit -m "Bumping version"
+          if [ $(git tag -l v${{ steps.bump.outputs.new_version }} | wc -l) -eq 0 ]; then
+            git tag v${{ steps.bump.outputs.new_version }}
+          fi
+          git push && git push --tags
+
+
+  build_executables:
+    name: Build Executables
+    needs: bump_version
+    strategy:
+      matrix:
+        include:
+          # Linux AMD64
+          - os: ubuntu-latest
+            platform: linux
+            arch: amd64
+            target_arch: ""
+
+          # macOS AMD64
+          - os: macos-latest
+            platform: macos
+            arch: amd64
+            target_arch: ""
+
+          # Windows AMD64
+          - os: windows-latest
+            platform: windows
+            arch: amd64
+            target_arch: ""
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.bump_version.outputs.new_version }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install .
+          pip install pyinstaller
+
+      - name: Build executable
+        shell: bash
+        run: |
+          pyinstaller ${{ matrix.target_arch }} inspector.spec
+
+      - name: Rename executable for platform
+        shell: bash
+        run: |
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            mv dist/inspector.exe dist/inspector-${{ needs.bump_version.outputs.new_version }}-${{ matrix.platform }}-${{ matrix.arch }}.exe
+          else
+            mv dist/inspector dist/inspector-${{ needs.bump_version.outputs.new_version }}-${{ matrix.platform }}-${{ matrix.arch }}
+          fi
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: executable-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            dist/inspector-${{ needs.bump_version.outputs.new_version }}-${{ matrix.platform }}-${{ matrix.arch }}*
+
+  create_release:
+    name: Create Release
+    needs: [bump_version, build_executables]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.bump_version.outputs.new_version }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        run: |
+          gh release create v${{ needs.bump_version.outputs.new_version }} \
+          artifacts/executable-linux-amd64/* \
+          artifacts/executable-macos-amd64/* \
+          artifacts/executable-windows-amd64/* \
+          --generate-notes \
+          --title "v${{ needs.bump_version.outputs.new_version }}" \
+          --draft
+        env:
+          GH_TOKEN: ${{ github.token }}

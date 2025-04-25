@@ -1,0 +1,106 @@
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+# We are using setuptools to build the distribution
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inspector"
+dynamic = ["version"]
+description = "An orchestartion framework for analysis of web3 projects and source code"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [
+    { name = "Andrew D. Anderson", email = "34364155+CallMeGwei@users.noreply.github.com" },
+    { name = "Josep Chetrit", email = "92144922+josepchetrit12@users.noreply.github.com" },
+    { name = "GianfrancoBazzani", email = "55500596+GianfrancoBazzani@users.noreply.github.com" },
+    { name = "Jeremy Felder", email = "jeremy.felder1@gmail.com" },
+    { name = "Georgii Plotnikov", email = "accembler@gmail.com" },
+    { name = "Samater", email = "91380534+SamGMK@users.noreply.github.com" },
+    { name = "Fernando Rabasco Ledesma", email = "48551658+ferrabled@users.noreply.github.com" },
+    { name = "Sebastian Fabry", email = "sebastian_fabry@openzeppelin.com" },
+    { name = "hasanza", email = "49759922+hasanza@users.noreply.github.com" },
+    { name = "Steven Thornton", email = "steven.thornton@openzeppelin.com" },
+    { name = "Tarun Mohandas Daryanani", email = "tarun.mdaryanani@gmail.com" },
+    { name = "Clark Henry", email = "42017055+clarkhenry@users.noreply.github.com" },
+    { name = "Nicolás García", email = "37629288+nicolasgarcia214@users.noreply.github.com" },
+    { name = "George Plotnikov", email = "accembler@gmail.com" },
+    { name = "Sebastian Fabry", email = "sebastianfabry@gmx.net" },
+    { name = "Vlad", email = "116102848+0xbuenosaires@users.noreply.github.com" },
+    { name = "Sam", email = "koalateectrl@gmail.com" },
+    { name = "João Amaral Santos", email = "joaoaaasantos@gmail.com" },
+    { name = "Nicolas Garcia", email = "nicolasgarcia214@gmail.com" },
+    { name = "Alireza Arjmand", email = "alireza.shakouri@openzeppelin.com" },
+    { name = "DanielCarmo", email = "dscarmo@gmail.com" },
+    { name = "Marcin Bury", email = "marcin@threat9.com" },
+    { name = "Nazgul", email = "0xnazgul@gmail.com" },
+    { name = "Zarf", email = "93984211+Zarfsec@users.noreply.github.com" },
+    { name = "cairo", email = "101215230+cairoeth@users.noreply.github.com" },
+    { name = "felix", email = "103530139+felixctr@users.noreply.github.com" },
+    { name = "sipox11", email = "sipox11@fedorablocks.io" },
+    { name = "Andres Bach", email = "38696580+andresbach@users.noreply.github.com" },
+    { name = "Banditx0x", email = "122878165+Banditx0x@users.noreply.github.com" },
+    { name = "Franco Valencia", email = "franco.avalencia@gmail.com" },
+    { name = "Ionut Gingu", email = "ionut.gingu@gmail.com" },
+    { name = "Jonas Merhej", email = "me@bonis.tech" },
+    { name = "Jose Carlos Montero Gomez", email = "sipox11@gmail.com" },
+    { name = "Nahuel D. Sánchez", email = "105667649+oznaah@users.noreply.github.com" },
+    { name = "Nikita Stupin", email = "18281368+nikitastupin@users.noreply.github.com" },
+    { name = "ericDeCourcy", email = "19626305+ericDeCourcy@users.noreply.github.com" },
+    { name = "m9800", email = "94403391+m9800@users.noreply.github.com" },
+    { name = "maxim", email = "92998635+0xmp@users.noreply.github.com" },
+    { name = "securerodd", email = "rdeichler@ucsb.edu" },
+    { name = "yuguang", email = "59580611+uranutan@users.noreply.github.com" },
+]
+
+dependencies = [
+    "argcomplete==3.6.2", # used to provide autocomplete for the cli
+    "tabulate==0.9.0", # used to print the coverage table
+    "termcolor==2.5.0", # used to print the coverage table with colors
+    "halo==0.0.31", # used to provide cli status "spinners" during long-running tasks
+    "pyyaml==6.0.2", # used to read yaml (metadata) files
+]
+
+# Creates a CLI command that invokes the entry-point function 
+[project.scripts]
+# command = entry-point
+inspector = "inspector.main:main"
+
+[project.urls]
+"Homepage" = "https://github.com/OpenZeppelin/openzeppelin-inspector"
+"Bug Tracker" = "https://github.com/OpenZeppelin/openzeppelin-inspector/issues"
+
+# defines which package(s) to build
+[tool.setuptools.packages.find]
+# base directory to look for packages
+where = ["src"]
+include = ["inspector*"]
+
+
+[tool.setuptools.package-data]
+"inspector.detector_metadata" = ["*.yml"]
+"*" = ["*.sol"]
+
+[tool.setuptools.dynamic]
+version = { attr = "inspector.__version__" }
+
+[tool.black]
+line-length = 88
+exclude = '''
+(
+    /(
+        \.git
+        | \.venv
+        | \.env
+        | \.eggs
+        | \.mypy_cache
+        | \.pytest_cache
+        | _build
+        | buck-out
+        | build
+        | dist
+        | src/inspector/dependencies
+        | venv
+    )/
+)
+'''

@@ -1,0 +1,18 @@
+# These libraries are only required for the developers, no need for user usage
+
+python-dateutil==2.8.2
+shortuuid==1.0.11
+
+# for testing
+pytest==7.4.2
+pytest-benchmark==4.0.0
+coverage==7.8.0
+
+# for formatting
+black==24.3.0 # python code formatter
+pre-commit==3.3.1 # a framework for pre-commit hooks
+
+# for requirements file updates
+pip-tools==7.4.1 # to write requirements.txt from pyproject
+
+-r ./requirements.txt
