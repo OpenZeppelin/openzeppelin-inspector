@@ -23,7 +23,7 @@ The following markers can be used in test files:
   - ```:true-negative-here: [detector_name]``` - Indicates the current line should not trigger a detection
 
 - **Disable Test Marker**:
-  - ```:disable-detector-test: [detector_name]``` - Deactivates a marker for the specified detector when placed on the same line as another marker
+  - ```:temporarily-invert-detector-test:``` - Inverts any marker on the same line
 
 ### Example Test File
 
