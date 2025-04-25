@@ -86,10 +86,10 @@ def _process_test_file(filepath: Path, detector_name: str) -> TestResult | None:
     try:
         with filepath.open("r", encoding="UTF-8") as f:
             for idx, line in enumerate(f, 1):
-                is_disabled = ":disable-detector-test:" in line
-                if is_disabled:
+                is_temporarily_inverted = ":temporarily-invert-detector-test:" in line
+                if is_temporarily_inverted:
                     logger.info(
-                        f"Testing {detector_name} and encountered disabled test annotation in {filepath.parts[-1]}:{idx}"
+                        f"Testing {detector_name} and encountered temporarily inverted test annotation in {filepath.parts[-1]}:{idx}"
                     )
                     logger.info(f"Line contents: {line.strip()}")
                 for marker_type, markers in TEST_MARKERS.items():
@@ -103,13 +103,10 @@ def _process_test_file(filepath: Path, detector_name: str) -> TestResult | None:
                             logger.warning(f"Line contents: {line.strip()}")
                             continue
                         target = _get_target_line(idx, marker)
-                        if is_disabled:
-                            # Skip this marker if disabled
-                            continue
                         if marker_type == "positive":
-                            positives.append(target)
+                            (negatives if is_temporarily_inverted else positives).append(target)
                         else:
-                            negatives.append(target)
+                            (positives if is_temporarily_inverted else negatives).append(target)
         return TestResult(true_positives=positives, true_negatives=negatives)
     except UnicodeDecodeError:
         logger.warning("Skipping %s due to Unicode decode error", filepath)
