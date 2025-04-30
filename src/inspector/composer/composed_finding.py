@@ -227,7 +227,7 @@ class ComposedFinding:
     def _compose_body(self, replacements: Dict[str, Any]) -> str:
         """Compose the main body text for the finding."""
         key = f"body-{self._files_one_or_many}-file-{self._instances_one_or_many}-instance"
-        body_template = self._template.get(key) or self._template.get("body") or ""
+        body_template = self._template.get(key) or self._template.get("body") or self._template.get("body-list-item") or ""
         return (
             Template(body_template).safe_substitute(replacements)
             if replacements
