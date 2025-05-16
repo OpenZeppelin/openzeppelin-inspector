@@ -16,7 +16,10 @@ logger: Logger = logging.getLogger(__name__)
 DEFAULT_CODEBASE_TEST_FOLDER = PATH_PROJECT_ROOT / "tests/utils/files"
 MOCK_SCANNER_PATH = PATH_PROJECT_ROOT / "tests/utils/mock_scanner"
 MOCK_SCANNER_ZIP_PATH = PATH_PROJECT_ROOT / "tests/utils/mock_scanner.zip"
-MOCK_EXECUTABLE_SCANNER_PATH = PATH_PROJECT_ROOT / "tests/utils/mock_executable_scanner/mock_scanner.py"
+MOCK_EXECUTABLE_SCANNER_PATH = (
+    PATH_PROJECT_ROOT / "tests/utils/mock_executable_scanner/mock_scanner.py"
+)
+
 
 class TestCLI(unittest.TestCase):
     folder_path = DEFAULT_CODEBASE_TEST_FOLDER
@@ -1088,7 +1091,9 @@ class TestExecutableScanner(unittest.TestCase):
         os.makedirs(os.path.dirname(MOCK_EXECUTABLE_SCANNER_PATH), exist_ok=True)
         # Verify test files exist
         if not os.path.exists(MOCK_EXECUTABLE_SCANNER_PATH):
-            raise FileNotFoundError(f"Mock scanner path not found: {MOCK_EXECUTABLE_SCANNER_PATH}")
+            raise FileNotFoundError(
+                f"Mock scanner path not found: {MOCK_EXECUTABLE_SCANNER_PATH}"
+            )
 
         logger.debug("Checking if mock-executable-scanner is installed...")
         coverage_command = [
@@ -1123,7 +1128,7 @@ class TestExecutableScanner(unittest.TestCase):
                 text=True,
             )
             assert uninstall_result.returncode == 0
-            
+
         logger.debug("Setup Class completed.")
         assert result.returncode == 0
         assert "mock-executable-scanner" not in result.stdout
@@ -1167,11 +1172,12 @@ class TestExecutableScanner(unittest.TestCase):
             assert "Uninstalled scanner successfully:" in result.stdout
         pass
 
-
     def test_executable_scanner_install(self):
         """Test scanner installation when the scanner is an executable."""
         logger.debug(f"Mock scanner path: {MOCK_EXECUTABLE_SCANNER_PATH}")
-        logger.debug(f"Mock scanner path exists: {os.path.exists(MOCK_EXECUTABLE_SCANNER_PATH)}")
+        logger.debug(
+            f"Mock scanner path exists: {os.path.exists(MOCK_EXECUTABLE_SCANNER_PATH)}"
+        )
         logger.debug(f"Project root: {PATH_PROJECT_ROOT}")
 
         coverage_command = [
@@ -1183,7 +1189,7 @@ class TestExecutableScanner(unittest.TestCase):
             "install",
             MOCK_EXECUTABLE_SCANNER_PATH,
             "--dev",
-            "--reinstall"
+            "--reinstall",
         ]
         result = subprocess.run(
             coverage_command,
@@ -1198,10 +1204,6 @@ class TestExecutableScanner(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0)
         self.assertIn("Installed scanner successfully:", result.stdout)
-
-
-
-
 
     def test_executable_scanner_detector_metadata(self):
         """Test detector metadata collection from executable scanner."""
@@ -1221,7 +1223,7 @@ class TestExecutableScanner(unittest.TestCase):
                 "mock-executable-scanner",
                 "--output-format",
                 "json",
-                "--minimal-output"
+                "--minimal-output",
             ],
             capture_output=True,
             text=True,
@@ -1255,7 +1257,8 @@ class TestExecutableScanner(unittest.TestCase):
         # Create a Python script that outputs invalid JSON
         scanner_script = os.path.join(temp_dir, "invalid_scanner.py")
         with open(scanner_script, "w") as f:
-            f.write("""
+            f.write(
+                """
             #!/usr/bin/env python3
             import sys
             import json
@@ -1263,7 +1266,8 @@ class TestExecutableScanner(unittest.TestCase):
             if sys.argv[1] == "metadata":
                 print("invalid json")
                 sys.exit(0)
-            """)
+            """
+            )
         os.chmod(scanner_script, 0o755)
 
         # Try to install the invalid scanner
@@ -1300,7 +1304,8 @@ class TestExecutableScanner(unittest.TestCase):
         # Create a Python script without execute permissions
         scanner_script = os.path.join(temp_dir, "no_permission_scanner.py")
         with open(scanner_script, "w") as f:
-            f.write("""
+            f.write(
+                """
             #!/usr/bin/env python3
             import sys
             import json
@@ -1308,7 +1313,8 @@ class TestExecutableScanner(unittest.TestCase):
             if sys.argv[1] == "metadata":
                 print(json.dumps({"name": "no-permission-scanner"}))
                 sys.exit(0)
-            """)
+            """
+            )
         os.chmod(scanner_script, 0o644)  # Read-only permissions
 
         # Try to install the scanner
