@@ -112,3 +112,25 @@ python3 src/inspector_cli.py scanner install /path/to/scanner
 ```
 
 For more information on using OpenZeppelin Inspector, refer to the [README](../README.md).
+
+## Troubleshooting
+
+### macOS Security Settings
+
+If you're using macOS and encounter a security warning when trying to run the OpenZeppelin Inspector, follow these steps to allow the application to run:
+
+1. When you first try to run the inspector, macOS will show a warning that the app is from an unidentified developer
+2. Open System Settings:
+   - Click the Apple menu () in the top-left corner
+   - Select "System Settings"
+3. Navigate to Privacy & Security settings:
+   - Click "Privacy & Security" in the sidebar
+   - Scroll down to the Security section
+4. Look for a message about the inspector being blocked
+5. Click "Open Anyway"
+6. Enter your system password when prompted
+7. Click "OK"
+
+After completing these steps, you should be able to run the OpenZeppelin Inspector without security warnings. The application will be saved as an exception in your security settings.
+
+> **Note**: While we provide these instructions, please ensure you download the OpenZeppelin Inspector only from official sources (GitHub releases) to maintain security. For more information about macOS security settings, see [Apple's official documentation](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac).
