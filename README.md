@@ -197,6 +197,8 @@ OpenZeppelin Inspector supports a plugin system for custom scanners. Scanners ar
 
 For information on creating and integrating your own scanners, refer to the [Scanner Integration Guide](docs/scanner_integration/overview.md).
 
+To see a list of currently available scanners and their features, check out the [Available Scanners](docs/scanners_available.md) documentation.
+
 ## Contributing
 
 *Contributing guidelines would go here*
