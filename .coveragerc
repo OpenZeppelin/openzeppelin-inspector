@@ -1,0 +1,17 @@
+[run]
+branch = True
+parallel = True
+concurrency = multiprocessing
+source = src/
+command_line = -m pytest tests/
+
+[report]
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError

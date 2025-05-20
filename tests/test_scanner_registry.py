@@ -226,3 +226,178 @@ class TestScannerRegistry(TestCase):
         # Test with severity filter
         scanners = scanner_registry.get_scanners_by_criteria(severities=["high"])
         self.assertEqual(len(scanners), 1)
+
+    def test_reload_registry(self):
+        """Test reloading the registry."""
+        scanner_registry._load_registry()
+        initial_registry = scanner_registry._registry.copy()
+
+        # Modify registry in memory
+        scanner_registry._registry["test_scanner"] = {"test": "data"}
+
+        # Reload should restore original state
+        scanner_registry.reload()
+        self.assertEqual(scanner_registry._registry, initial_registry)
+
+    def test_add_or_update_scanner_io_error(self):
+        """Test handling IOError when adding/updating scanner."""
+        scanner_registry._load_registry()
+
+        # Make registry path read-only to force IOError
+        os.chmod(self.registry_path, 0o444)
+
+        with patch("logging.Logger.error") as mock_error:
+            with self.assertRaises(IOError):
+                scanner_registry.add_or_update_scanner("test_scanner", {"test": "data"})
+            mock_error.assert_called_once()
+            self.assertIn("Failed to save updated registry", mock_error.call_args[0][0])
+
+        # Restore permissions
+        os.chmod(self.registry_path, 0o666)
+
+    def test_get_scanner_detector_info(self):
+        """Test getting detector info for a specific scanner."""
+        scanner_registry._load_registry()
+
+        # Test existing detector
+        info = scanner_registry.get_scanner_detector_info("scanner1", "detector1")
+        self.assertEqual(
+            info, self.sample_registry["scanner1"]["detectors"]["detector1"]
+        )
+
+        # Test non-existent scanner
+        info = scanner_registry.get_scanner_detector_info("nonexistent", "detector1")
+        self.assertIsNone(info)
+
+        # Test non-existent detector
+        info = scanner_registry.get_scanner_detector_info("scanner1", "nonexistent")
+        self.assertIsNone(info)
+
+    def test_get_scanner_full_detector_metadata(self):
+        """Test getting full detector metadata for a scanner."""
+        scanner_registry._load_registry()
+
+        # Test existing scanner
+        metadata = scanner_registry.get_scanner_full_detector_metadata("scanner1")
+        self.assertEqual(metadata, self.sample_registry["scanner1"]["detectors"])
+
+        # Test non-existent scanner
+        metadata = scanner_registry.get_scanner_full_detector_metadata("nonexistent")
+        self.assertEqual(metadata, {})
+
+    def test_get_scanner_version(self):
+        """Test getting scanner version."""
+        scanner_registry._load_registry()
+
+        # Test existing scanner
+        version = scanner_registry.get_scanner_version("scanner1")
+        self.assertEqual(version, "0.1")
+
+        # Test non-existent scanner
+        version = scanner_registry.get_scanner_version("nonexistent")
+        self.assertIsNone(version)
+
+    def test_get_scanner_org(self):
+        """Test getting scanner organization."""
+        scanner_registry._load_registry()
+
+        # Test existing scanner
+        org = scanner_registry.get_scanner_org("scanner1")
+        self.assertEqual(org, "none")
+
+        # Test non-existent scanner
+        org = scanner_registry.get_scanner_org("nonexistent")
+        self.assertIsNone(org)
+
+    def test_get_scanner_description(self):
+        """Test getting scanner description."""
+        scanner_registry._load_registry()
+
+        # Test existing scanner without description
+        desc = scanner_registry.get_scanner_description("scanner1")
+        self.assertIsNone(desc)
+
+        # Test non-existent scanner
+        desc = scanner_registry.get_scanner_description("nonexistent")
+        self.assertIsNone(desc)
+
+    def test_get_scanner_detector_names(self):
+        """Test getting detector names for a scanner."""
+        scanner_registry._load_registry()
+
+        # Test existing scanner
+        names = scanner_registry.get_scanner_detector_names("scanner1")
+        self.assertEqual(set(names), {"detector1", "detector2"})
+
+        # Test non-existent scanner
+        names = scanner_registry.get_scanner_detector_names("nonexistent")
+        self.assertEqual(names, [])
+
+    def test_get_detector_info_not_found(self):
+        """Test getting detector info when not found."""
+        scanner_registry._load_registry()
+
+        # Test non-existent detector
+        info = scanner_registry.get_detector_info("nonexistent")
+        self.assertIsNone(info)
+
+    ## Edge cases
+    def test_get_tags_by_criteria_edge_cases(self):
+        """Test edge cases for get_tags_by_criteria."""
+        scanner_registry._load_registry()
+
+        # Test with invalid scanner
+        tags = scanner_registry.get_tags_by_criteria(scanners=["nonexistent"])
+        self.assertEqual(len(tags), 0)
+
+        # Test with invalid severity
+        tags = scanner_registry.get_tags_by_criteria(severities=["nonexistent"])
+        self.assertEqual(len(tags), 0)
+
+    def test_get_severities_by_criteria_edge_cases(self):
+        """Test edge cases for get_severities_by_criteria."""
+        scanner_registry._load_registry()
+
+        # Test with invalid scanner
+        severities = scanner_registry.get_severities_by_criteria(
+            scanners=["nonexistent"]
+        )
+        self.assertEqual(severities, {})
+
+        # Test with invalid tag
+        severities = scanner_registry.get_severities_by_criteria(tags=["nonexistent"])
+        self.assertEqual(severities, {})
+
+    def test_get_detectors_by_criteria_edge_cases(self):
+        """Test edge cases for get_detectors_by_criteria."""
+        scanner_registry._load_registry()
+
+        # Test with invalid scanner
+        detectors = scanner_registry.get_detectors_by_criteria(scanners=["nonexistent"])
+        self.assertEqual(detectors, [])
+
+        # Test with invalid severity
+        detectors = scanner_registry.get_detectors_by_criteria(
+            severities=["nonexistent"]
+        )
+        self.assertEqual(detectors, [])
+
+        # Test with invalid tag
+        detectors = scanner_registry.get_detectors_by_criteria(tags=["nonexistent"])
+        self.assertEqual(detectors, [])
+
+    def test_get_scanners_by_criteria_edge_cases(self):
+        """Test edge cases for get_scanners_by_criteria."""
+        scanner_registry._load_registry()
+
+        # Test with invalid detector
+        scanners = scanner_registry.get_scanners_by_criteria(detectors=["nonexistent"])
+        self.assertEqual(scanners, [])
+
+        # Test with invalid tag
+        scanners = scanner_registry.get_scanners_by_criteria(tags=["nonexistent"])
+        self.assertEqual(scanners, [])
+
+        # Test with invalid severity
+        scanners = scanner_registry.get_scanners_by_criteria(severities=["nonexistent"])
+        self.assertEqual(scanners, [])

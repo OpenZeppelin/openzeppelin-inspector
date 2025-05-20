@@ -16,6 +16,9 @@ logger: Logger = logging.getLogger(__name__)
 DEFAULT_CODEBASE_TEST_FOLDER = PATH_PROJECT_ROOT / "tests/utils/files"
 MOCK_SCANNER_PATH = PATH_PROJECT_ROOT / "tests/utils/mock_scanner"
 MOCK_SCANNER_ZIP_PATH = PATH_PROJECT_ROOT / "tests/utils/mock_scanner.zip"
+MOCK_EXECUTABLE_SCANNER_PATH = (
+    PATH_PROJECT_ROOT / "tests/utils/mock_executable_scanner/mock_scanner.py"
+)
 
 
 class TestCLI(unittest.TestCase):
@@ -1037,14 +1040,14 @@ class TestMockScannerInstallationCommands(unittest.TestCase):
         with open(os.path.join(temp_dir, "pyproject.toml"), "w") as f:
             f.write(
                 """
-[project]
-name = "failing_scanner"
-version = "1.0.0"
+                [project]
+                name = "failing_scanner"
+                version = "1.0.0"
 
-[tool.openzeppelin.inspector]
-scanner_name = "failing_scanner"
-scanner_org = "test"
-"""
+                [tool.openzeppelin.inspector]
+                scanner_name = "failing_scanner"
+                scanner_org = "test"
+                """
             )
 
         # Create an invalid requirements.txt
@@ -1074,6 +1077,279 @@ scanner_org = "test"
         # Should fail during post-installation
         self.assertEqual(result.returncode, 1)
         self.assertIn("Python setup failed for", result.stderr)
+
+
+class TestExecutableScanner(unittest.TestCase):
+    test_dir = "./tests/utils/files/"
+    temp_dirs = [
+        "/tmp/temp_invalid_metadata_scanner",
+        "/tmp/temp_no_permission_scanner",
+        "/tmp/temp_failing_scanner",
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up test environment for install related commands."""
+        logger.debug("Setting up test environment...")
+
+        # Ensure test directories exist
+        os.makedirs(os.path.dirname(MOCK_EXECUTABLE_SCANNER_PATH), exist_ok=True)
+        # Verify test files exist
+        if not os.path.exists(MOCK_EXECUTABLE_SCANNER_PATH):
+            raise FileNotFoundError(
+                f"Mock scanner path not found: {MOCK_EXECUTABLE_SCANNER_PATH}"
+            )
+
+        logger.debug("Checking if mock-executable-scanner is installed...")
+        coverage_command = [
+            "coverage",
+            "run",
+            "-m",
+            "src.inspector_cli",
+            "scanner",
+            "list",
+        ]
+
+        result = subprocess.run(
+            coverage_command,
+            capture_output=True,
+            text=True,
+        )
+        if "mock-executable-scanner" in result.stdout:
+            logger.debug("mock-executable-scanner is installed, uninstalling...")
+            coverage_command = [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "uninstall",
+                "mock-executable-scanner",
+            ]
+
+            uninstall_result = subprocess.run(
+                coverage_command,
+                capture_output=True,
+                text=True,
+            )
+            assert uninstall_result.returncode == 0
+
+        logger.debug("Setup Class completed.")
+        assert result.returncode == 0
+        assert "mock-executable-scanner" not in result.stdout
+
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up test directories and files."""
+        logger.debug("Tearing down test environment...")
+        coverage_command = [
+            "coverage",
+            "run",
+            "-m",
+            "src.inspector_cli",
+            "scanner",
+            "list",
+        ]
+
+        result = subprocess.run(
+            coverage_command,
+            capture_output=True,
+            text=True,
+        )
+        if "mock-executable-scanner" in result.stdout:
+            logger.debug("mock-executable-scanner is installed, uninstalling...")
+            coverage_command = [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "uninstall",
+                "mock-executable-scanner",
+            ]
+
+            result = subprocess.run(
+                coverage_command,
+                capture_output=True,
+                text=True,
+            )
+            assert result.returncode == 0
+            assert "Uninstalled scanner successfully:" in result.stdout
+
+        for temp_dir in cls.temp_dirs:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+                logger.debug(f"Cleaned up temp directory: {temp_dir}")
+
+    def test_executable_scanner_install(self):
+        """Test scanner installation when the scanner is an executable."""
+        logger.debug(f"Mock scanner path: {MOCK_EXECUTABLE_SCANNER_PATH}")
+        logger.debug(
+            f"Mock scanner path exists: {os.path.exists(MOCK_EXECUTABLE_SCANNER_PATH)}"
+        )
+        logger.debug(f"Project root: {PATH_PROJECT_ROOT}")
+
+        coverage_command = [
+            "coverage",
+            "run",
+            "-m",
+            "src.inspector_cli",
+            "scanner",
+            "install",
+            MOCK_EXECUTABLE_SCANNER_PATH,
+            "--dev",
+            "--reinstall",
+        ]
+        result = subprocess.run(
+            coverage_command,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            logger.error(f"Command failed with return code {result.returncode}")
+            logger.error(f"stdout: {result.stdout}")
+            logger.error(f"stderr: {result.stderr}")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Installed scanner successfully:", result.stdout)
+
+    def test_executable_scanner_detector_metadata(self):
+        """Test detector metadata collection from executable scanner."""
+        # First install the scanner
+        self.test_executable_scanner_install()
+
+        # Run a scan to verify detector metadata is collected correctly
+        result = subprocess.run(
+            [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scan",
+                self.test_dir,
+                "--scanner",
+                "mock-executable-scanner",
+                "--output-format",
+                "json",
+                "--minimal-output",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        json_output = json.loads(result.stdout)
+        self.assertIn("findings", json_output)
+        self.assertIsInstance(json_output["findings"], list)
+
+        # Clean up
+        subprocess.run(
+            [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "uninstall",
+                "mock-executable-scanner",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_executable_scanner_invalid_metadata(self):
+        """Test handling of invalid metadata from executable scanner."""
+        # Create a temporary scanner with invalid metadata output
+        temp_dir = "/tmp/temp_invalid_metadata_scanner"
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Create a Python script that outputs invalid JSON
+        scanner_script = os.path.join(temp_dir, "invalid_scanner.py")
+        with open(scanner_script, "w") as f:
+            f.write(
+                """
+            #!/usr/bin/env python3
+            import sys
+            import json
+
+            if sys.argv[1] == "metadata":
+                print("invalid json")
+                sys.exit(0)
+            """
+            )
+        os.chmod(scanner_script, 0o755)
+
+        # Try to install the invalid scanner
+        result = subprocess.run(
+            [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "install",
+                scanner_script,
+                "--reinstall",
+                "--log-level",
+                "warn",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        # Clean up
+        shutil.rmtree(temp_dir)
+
+        # Should fail due to invalid metadata
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Failed to get metadata from executable", result.stderr)
+
+    def test_executable_scanner_permission_error(self):
+        """Test handling of permission errors when running executable scanner."""
+        # Create a temporary scanner without execute permissions
+        temp_dir = "/tmp/temp_no_permission_scanner"
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Create a Python script without execute permissions
+        scanner_script = os.path.join(temp_dir, "no_permission_scanner.py")
+        with open(scanner_script, "w") as f:
+            f.write(
+                """
+            #!/usr/bin/env python3
+            import sys
+            import json
+
+            if sys.argv[1] == "metadata":
+                print(json.dumps({"name": "no-permission-scanner"}))
+                sys.exit(0)
+            """
+            )
+        os.chmod(scanner_script, 0o644)  # Read-only permissions
+
+        # Try to install the scanner
+        result = subprocess.run(
+            [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "install",
+                scanner_script,
+                "--reinstall",
+                "--log-level",
+                "warn",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        # Clean up
+        shutil.rmtree(temp_dir)
+
+        # Should fail due to permission error
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("not executable", result.stderr)
 
 
 def main():

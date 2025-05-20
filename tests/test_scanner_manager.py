@@ -115,6 +115,108 @@ class TestScannerManager(unittest.TestCase):
         self.assertGreater(len(scanners), 0)
         self.assertIn("mock-scanner", ScannerManager.get_all_available_scanner_names())
 
+    def test_load_all_detectors_with_failing_scanner(self):
+        """Test loading detectors when a scanner fails to load."""
+        # Create a temporary scanner that will fail to load
+        failing_scanner_path = Path("/tmp/temp_failing_scanner")
+        failing_scanner_path.mkdir(exist_ok=True)
+        (failing_scanner_path / "__init__.py").touch()
+
+        # Create a scanner that will raise an exception during detector loading
+        with open(failing_scanner_path / "failing_scanner.py", "w") as f:
+            f.write(
+                """
+            class FailingScanner:
+                def get_supported_detector_metadata(self):
+                    raise Exception("Test failure")
+                def get_scanner_name(self):
+                    return "failing-scanner"
+                def get_root_test_dirs(self):
+                    return []
+                def run(self, detector_names, code_paths, project_root):
+                    return {}
+            """
+            )
+
+        # Install the failing scanner
+        coverage_command = [
+            "coverage",
+            "run",
+            "-m",
+            "src.inspector_cli",
+            "scanner",
+            "install",
+            str(failing_scanner_path),
+            "--dev",
+            "--reinstall",
+        ]
+        subprocess.run(coverage_command, capture_output=True, text=True)
+
+        try:
+            # Force reload to include the failing scanner
+            ScannerManager.reload()
+
+            # Verify that other scanners still work
+            manager = ScannerManager()
+            self.assertIn("mock-scanner", manager.get_all_available_scanner_names())
+            self.assertGreater(len(manager.get_all_available_detector_metadata()), 0)
+        finally:
+            # Cleanup
+            uninstall_command = [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "uninstall",
+                "failing_scanner",
+            ]
+            subprocess.run(uninstall_command, capture_output=True, text=True)
+            ScannerManager.reload()
+
+    def test_python_scanner_import_error(self):
+        """Test error handling when importing a Python scanner fails."""
+        # Create a scanner with invalid Python code
+        invalid_scanner_path = Path("/tmp/temp_invalid_python_scanner")
+        invalid_scanner_path.mkdir(exist_ok=True)
+        with open(invalid_scanner_path / "__init__.py", "w") as f:
+            f.write("invalid python code")
+
+        # Install the invalid scanner
+        coverage_command = [
+            "coverage",
+            "run",
+            "-m",
+            "src.inspector_cli",
+            "scanner",
+            "install",
+            str(invalid_scanner_path),
+            "--dev",
+            "--reinstall",
+        ]
+        subprocess.run(coverage_command, capture_output=True, text=True)
+
+        try:
+            # Force reload to include the invalid scanner
+            ScannerManager.reload()
+
+            # Verify that other scanners still work
+            manager = ScannerManager()
+            self.assertIn("mock-scanner", manager.get_all_available_scanner_names())
+        finally:
+            # Cleanup
+            uninstall_command = [
+                "coverage",
+                "run",
+                "-m",
+                "src.inspector_cli",
+                "scanner",
+                "uninstall",
+                "invalid_scanner",
+            ]
+            subprocess.run(uninstall_command, capture_output=True, text=True)
+            ScannerManager.reload()
+
 
 if __name__ == "__main__":
     unittest.main()
