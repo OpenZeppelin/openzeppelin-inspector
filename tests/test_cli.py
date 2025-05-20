@@ -1081,6 +1081,11 @@ class TestMockScannerInstallationCommands(unittest.TestCase):
 
 class TestExecutableScanner(unittest.TestCase):
     test_dir = "./tests/utils/files/"
+    temp_dirs = [
+        "/tmp/temp_invalid_metadata_scanner",
+        "/tmp/temp_no_permission_scanner",
+        "/tmp/temp_failing_scanner"
+    ]
 
     @classmethod
     def setUpClass(cls):
@@ -1170,7 +1175,12 @@ class TestExecutableScanner(unittest.TestCase):
             )
             assert result.returncode == 0
             assert "Uninstalled scanner successfully:" in result.stdout
-        pass
+
+        for temp_dir in cls.temp_dirs:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+                logger.debug(f"Cleaned up temp directory: {temp_dir}")
+
 
     def test_executable_scanner_install(self):
         """Test scanner installation when the scanner is an executable."""
