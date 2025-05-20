@@ -1084,7 +1084,7 @@ class TestExecutableScanner(unittest.TestCase):
     temp_dirs = [
         "/tmp/temp_invalid_metadata_scanner",
         "/tmp/temp_no_permission_scanner",
-        "/tmp/temp_failing_scanner"
+        "/tmp/temp_failing_scanner",
     ]
 
     @classmethod
@@ -1180,7 +1180,6 @@ class TestExecutableScanner(unittest.TestCase):
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
                 logger.debug(f"Cleaned up temp directory: {temp_dir}")
-
 
     def test_executable_scanner_install(self):
         """Test scanner installation when the scanner is an executable."""
