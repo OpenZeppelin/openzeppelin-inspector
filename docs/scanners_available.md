@@ -1,12 +1,12 @@
 # Available Scanners
 
-This document lists and describes the currently available scanners for OpenZeppelin Inspector.
+This document lists and describes the currently available open-source scanners for OpenZeppelin Inspector.
 
 ## Table of Scanners
 
 | Scanner | Description | Link |
 |---------|-------------|------|
-| Compact Scanner | Analyzes `Compact` language for security vulnerabilities within the Midnight platform | [View Details](#compact-scanner) |
+| Compact Scanner | Analyzes smart contract source code written in the Compact language for security vulnerabilities in contracts targeting the Midnight blockchain | [View Details](#compact-scanner) |
 
 
 ## Compact Scanner

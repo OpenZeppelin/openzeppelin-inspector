@@ -119,14 +119,14 @@ For more information on using OpenZeppelin Inspector, refer to the [README](../R
 
 If you're using macOS and encounter a security warning when trying to run the OpenZeppelin Inspector, follow these steps to allow the application to run:
 
-1. When you first try to run the inspector, macOS will show a warning that the app is from an unidentified developer
+1. When you first try to run Inspector, macOS will show a warning that the app is from an unidentified developer
 2. Open System Settings:
    - Click the Apple menu () in the top-left corner
    - Select "System Settings"
 3. Navigate to Privacy & Security settings:
    - Click "Privacy & Security" in the sidebar
    - Scroll down to the Security section
-4. Look for a message about the inspector being blocked
+4. Look for a message about Inspector being blocked
 5. Click "Open Anyway"
 6. Enter your system password when prompted
 7. Click "OK"
