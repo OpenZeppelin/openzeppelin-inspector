@@ -111,7 +111,7 @@ class ComposedFinding:
         always = self._template.get("body-list-item-always")
         multiple_instances = self._instances_one_or_many != "single"
         guidance_tag = (
-                len(self.issue_categories) == 1 and "guidance" in self.issue_categories
+            len(self.issue_categories) == 1 and "guidance" in self.issue_categories
         )
         return bool(always or multiple_instances or guidance_tag)
 
