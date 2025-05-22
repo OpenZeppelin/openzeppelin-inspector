@@ -13,7 +13,7 @@ class CompleteDetectorResponse:
     Attributes:
         findings: The security or code issue found by this detector, if any
                   (generally there will be a single finding per detector).
-        errors: An error encountered by this detector, if any.
+        errors: Error encountered by this detector, if any.
         metadata: Arbitrary metadata associated with the detector execution,
                   such as execution time, rule version, etc.
     """

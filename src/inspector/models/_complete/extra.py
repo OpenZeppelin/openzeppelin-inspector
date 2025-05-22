@@ -1,3 +1,4 @@
+from typing import Any
 from dataclasses import dataclass, field
 
 
@@ -13,7 +14,7 @@ class Extra:
     """
 
     metavars: dict[str, str] = field(default_factory=dict)
-    other: dict[str, any] = field(default_factory=dict)
+    other: dict[str, Any] = field(default_factory=dict)
 
     def __json__(self) -> dict:
         """
