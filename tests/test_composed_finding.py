@@ -266,11 +266,14 @@ class TestComposedFinding(unittest.TestCase):
             fixes=[],
         )
 
-        # Add a template that uses metavariables
+        # Add templates that use metavariables
         metadata = self.metadata.copy()
         metadata["report"]["template"][
             "body"
         ] = "Test body with $file_name\n\nFunction: $function_name\nAmount: $amount"
+        metadata["report"]["template"][
+            "title"
+        ] = "Issue in $function_name with $amount tokens"
 
         composed = ComposedFinding(
             detector_id="test-id",
@@ -283,6 +286,10 @@ class TestComposedFinding(unittest.TestCase):
         full_text = composed.get_full_text()
         self.assertIn("Function: transfer", full_text)
         self.assertIn("Amount: 100", full_text)
+
+        # Test that metavariables are included in the title
+        self.assertEqual(composed.title, "Issue in transfer with 100 tokens")
+        self.assertIn("Issue in transfer with 100 tokens", full_text)
 
 
 if __name__ == "__main__":

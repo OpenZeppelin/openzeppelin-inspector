@@ -93,12 +93,12 @@ class ComposedFinding:
     def _compose_finding(self) -> None:
         """Main composition function that orchestrates the finding creation."""
         self._enumerate_instances = self._should_enumerate_instances()
-        self.title = self._compose_title()
         (
             self.instances,
             self.instances_location,
             replacements,
         ) = self._compose_instances()
+        self.title = self._compose_title(replacements)
         self.body = self._compose_body(replacements)
         self.opening = self._compose_opening(replacements)
         self.closing = self._template.get("closing")
@@ -115,12 +115,17 @@ class ComposedFinding:
         )
         return bool(always or multiple_instances or guidance_tag)
 
-    def _compose_title(self) -> str:
-        """Select the appropriate title template."""
+    def _compose_title(self, replacements: Dict[str, Any]) -> str:
+        """Select the appropriate title template and apply replacements."""
         generic_title = self._template.get("title")
         title_key = f"title-{self._instances_one_or_many}-instance"
         instance_aware_title = self._template.get(title_key)
-        return instance_aware_title or generic_title or DEFAULT_ISSUE_TITLE
+        title_template = instance_aware_title or generic_title or DEFAULT_ISSUE_TITLE
+        return (
+            Template(title_template).safe_substitute(replacements)
+            if replacements
+            else title_template
+        )
 
     def _compose_instances(self) -> Tuple[List[str], List[Any], Dict[str, Any]]:
         """Compose formatted instance descriptions and collect replacements."""
