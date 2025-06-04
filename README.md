@@ -209,7 +209,7 @@ We welcome contributions from the community! Here's how you can get involved:
 4. Push to the branch
 5. Create a Pull Request
 
-If you are looking for a good place to start, find a good first issue [here](https://github.com/openzeppelin/openzeppelin-inspector/issues?q=is%3Aissue%20is%3Aopen%20label%3Agood-first-issue).
+If you are looking for a good place to start, find a good first issue [here](https://github.com/openzeppelin/openzeppelin-inspector/issues?q=is%3Aissue%20is%3Aopen%20label%3A"good%20first%20issue").
 
 You can open an issue for a [bug report](https://github.com/openzeppelin/openzeppelin-inspector/issues/new?assignees=&labels=T-bug%2CS-needs-triage&projects=&template=bug.yml), [feature request](https://github.com/openzeppelin/openzeppelin-inspector/issues/new?assignees=&labels=T-feature%2CS-needs-triage&projects=&template=feature.yml), or [documentation request](https://github.com/openzeppelin/openzeppelin-inspector/issues/new?assignees=&labels=T-documentation%2CS-needs-triage&projects=&template=docs.yml).
 
