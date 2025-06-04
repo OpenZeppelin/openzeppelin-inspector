@@ -201,8 +201,24 @@ To see a list of currently available scanners and their features, check out the 
 
 ## Contributing
 
-*Contributing guidelines would go here*
+We welcome contributions from the community! Here's how you can get involved:
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+If you are looking for a good place to start, find a good first issue [here](https://github.com/openzeppelin/openzeppelin-inspector/issues?q=is%3Aissue%20is%3Aopen%20label%3Agood-first-issue).
+
+You can open an issue for a [bug report](https://github.com/openzeppelin/openzeppelin-inspector/issues/new?assignees=&labels=T-bug%2CS-needs-triage&projects=&template=bug.yml), [feature request](https://github.com/openzeppelin/openzeppelin-inspector/issues/new?assignees=&labels=T-feature%2CS-needs-triage&projects=&template=feature.yml), or [documentation request](https://github.com/openzeppelin/openzeppelin-inspector/issues/new?assignees=&labels=T-documentation%2CS-needs-triage&projects=&template=docs.yml).
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) and check the [Security Policy](SECURITY.md) for reporting vulnerabilities.
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 — see the [LICENSE](./LICENSE) file for details.
+
+## Security
+
+For security concerns, please refer to our [Security Policy](SECURITY.md).
