@@ -291,6 +291,65 @@ class TestComposedFinding(unittest.TestCase):
         self.assertEqual(composed.title, "Issue in transfer with 100 tokens")
         self.assertIn("Issue in transfer with 100 tokens", full_text)
 
+    def test_multiple_instances_single_file(self):
+        """Test that multiple instances in a single file are correctly identified as 'multiple' instances.
+        """
+        # Create multiple instances all in the same file
+        minimal_finding = MinimalFinding(
+            instances=[
+                MinimalInstance(
+                    path="tests/utils/files/NoIssues.sol",
+                    offset_start=0,
+                    offset_end=1,
+                    extra=Extra(metavars={}),
+                ),
+                MinimalInstance(
+                    path="tests/utils/files/NoIssues.sol",
+                    offset_start=10,
+                    offset_end=15,
+                    extra=Extra(metavars={}),
+                ),
+                MinimalInstance(
+                    path="tests/utils/files/NoIssues.sol",
+                    offset_start=20,
+                    offset_end=25,
+                    extra=Extra(metavars={}),
+                ),
+            ],
+        )
+
+        # Convert to Finding for ComposedFinding
+        finding = minimal_finding_to_finding(
+            minimal_finding, self.scm, self.project_root
+        )
+
+        metadata = self.metadata.copy()
+        metadata["report"]["template"].update(
+            {
+                "title-single-instance": "Single Instance Title",
+                "title-multiple-instance": "Multiple Instance Title",
+            }
+        )
+
+        composed = ComposedFinding(
+            detector_id="test-id",
+            finding=finding,
+            metadata=metadata,
+            project_root="",
+        )
+
+        self.assertEqual(composed.num_instances, 3)
+        self.assertEqual(composed.num_files, 1)  # All instances are in the same file
+        
+        # It should be treated as "multiple" instances
+        self.assertEqual(composed._instances_one_or_many, "multiple")
+        
+        # Verify that the correct template is used
+        self.assertEqual(composed.title, "Multiple Instance Title")
+        
+        # Verify that instances are enumerated
+        self.assertTrue(composed._enumerate_instances)
+
 
 if __name__ == "__main__":
     unittest.main()
