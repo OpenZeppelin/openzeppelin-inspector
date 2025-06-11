@@ -292,8 +292,7 @@ class TestComposedFinding(unittest.TestCase):
         self.assertIn("Issue in transfer with 100 tokens", full_text)
 
     def test_multiple_instances_single_file(self):
-        """Test that multiple instances in a single file are correctly identified as 'multiple' instances.
-        """
+        """Test that multiple instances in a single file are correctly identified as 'multiple' instances."""
         # Create multiple instances all in the same file
         minimal_finding = MinimalFinding(
             instances=[
@@ -340,13 +339,13 @@ class TestComposedFinding(unittest.TestCase):
 
         self.assertEqual(composed.num_instances, 3)
         self.assertEqual(composed.num_files, 1)  # All instances are in the same file
-        
+
         # It should be treated as "multiple" instances
         self.assertEqual(composed._instances_one_or_many, "multiple")
-        
+
         # Verify that the correct template is used
         self.assertEqual(composed.title, "Multiple Instance Title")
-        
+
         # Verify that instances are enumerated
         self.assertTrue(composed._enumerate_instances)
 
