@@ -40,7 +40,7 @@ class ComposedFinding:
         self._num_lines = sum(len(instance.lines) for instance in finding.instances)
 
         self._files_one_or_many = "single" if self._num_files == 1 else "multiple"
-        self._instances_one_or_many = "single" if self._num_files == 1 else "multiple"
+        self._instances_one_or_many = "single" if self._num_instances == 1 else "multiple"
 
         # Composed output fields
         self.title: str = ""
