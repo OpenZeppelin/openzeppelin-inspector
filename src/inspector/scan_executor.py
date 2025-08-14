@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import List, Dict, Optional
 
 from .models._complete.scanner_response import CompleteScannerResponse
 from .scanner_manager import ScannerManager
@@ -12,10 +13,10 @@ class ScanExecutor:
 
     def __init__(
         self,
-        detectors_names: list[str],
-        source_code: list[str],
+        detectors_names: List[str],
+        source_code: List[str],
         project_root: str,
-        scanners: list[str] = None,
+        scanners: Optional[List[str]] = None,
     ):
         self.detectors_names = detectors_names
         self.source_code = source_code
@@ -23,7 +24,7 @@ class ScanExecutor:
         self.scanners = scanners or []
         self.scanner_manager = ScannerManager()
 
-    def execute(self) -> dict[str, CompleteScannerResponse]:
+    async def execute(self) -> dict[str, CompleteScannerResponse]:
         """
         Execute the scanning process using the configured rules and scanners.
 
@@ -38,7 +39,7 @@ class ScanExecutor:
                 else Path(self.project_root)
             )
             source_code_paths = [Path(path) for path in self.source_code]
-            scanner_manager_scanner_responses = self.scanner_manager.execute_scan(
+            scanner_manager_scanner_responses = await self.scanner_manager.execute_scan(
                 self.detectors_names,
                 source_code_paths,
                 project_root_path,

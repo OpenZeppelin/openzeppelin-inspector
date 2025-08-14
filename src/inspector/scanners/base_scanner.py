@@ -72,7 +72,6 @@ class ScanException(ScannerException):
 
     pass
 
-
 class BaseScanner(ABC):
     """
     Abstract base class defining the interface for single-file code scanners.
@@ -184,7 +183,7 @@ class BaseScanner(ABC):
         pass
 
     @abstractmethod
-    def run(
+    async def run(
         self,
         detector_names: list[str],
         code_paths: list[Path],

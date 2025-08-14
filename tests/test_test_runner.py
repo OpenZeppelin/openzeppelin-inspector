@@ -18,7 +18,7 @@ from inspector.detector_tester.test_runner import (
 )
 
 
-class TestTestRunner(unittest.TestCase):
+class TestTestRunner(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         self.test_file = Path(self.temp_dir) / "test.sol"
@@ -245,7 +245,7 @@ class TestTestRunner(unittest.TestCase):
         self.assertNotIn(":true-negative-here:", cleaned)
         self.assertNotIn(":temporarily-invert-detector-test:", cleaned)
 
-    def test_run_detector_tests_with_no_detectors(self):
+    async def test_run_detector_tests_with_no_detectors(self):
         """Test running tests with no available detectors."""
         with patch(
             "inspector.detector_tester.test_runner.ScannerManager"
@@ -260,7 +260,7 @@ class TestTestRunner(unittest.TestCase):
             mock_test_manager_instance.get_test_projects.return_value = []
             mock_test_manager.return_value = mock_test_manager_instance
 
-            output, has_failures, report = run_detector_tests(
+            output, has_failures, report = await run_detector_tests(
                 scanners=["test_scanner"], detectors=["test_detector"]
             )
             self.assertEqual(output, "No detectors available to test")

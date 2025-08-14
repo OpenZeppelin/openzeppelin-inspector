@@ -16,6 +16,7 @@ Environment Variables:
     INSPECTOR_SCANNERS: Colon-separated paths to additional scanner locations
 """
 
+import asyncio
 import json
 import os
 import logging
@@ -26,6 +27,7 @@ import subprocess
 import sys
 import importlib
 import traceback
+from typing import List, Dict
 from .constants import PATH_USER_INSPECTOR_SCANNERS_VENVS
 from .models.minimal.scanner_response import MinimalScannerResponse
 from .models._complete.scanner_response import CompleteScannerResponse
@@ -99,11 +101,10 @@ class AbstractScannerRunner(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def run(
+    async def run(
         self, detector_names: list[str], code_paths: list[Path], project_root: Path
     ) -> MinimalScannerResponse:
         pass
-
 
 class PythonScannerRunner(AbstractScannerRunner):
     def __init__(self, scanner: BaseScanner, scanner_dir: str):
@@ -122,11 +123,11 @@ class PythonScannerRunner(AbstractScannerRunner):
         with VenvPathManager.temporary_venv_path(self._venvs_dir, self._scanner_dir):
             return self._scanner.get_root_test_dirs()
 
-    def run(
+    async def run(
         self, detector_names: list[str], code_paths: list[Path], project_root: Path
     ) -> MinimalScannerResponse:
         with VenvPathManager.temporary_venv_path(self._venvs_dir, self._scanner_dir):
-            return self._scanner.run(detector_names, code_paths, project_root)
+            return await self._scanner.run(detector_names, code_paths, project_root)
 
 
 class ExecutableScannerRunner(AbstractScannerRunner):
@@ -138,14 +139,14 @@ class ExecutableScannerRunner(AbstractScannerRunner):
     def get_scanner_name(self) -> str:
         return self._scanner_name
 
-    def get_supported_detector_metadata(self) -> dict[str, dict]:
+    def get_supported_detector_metadata(self) -> Dict[str, Dict]:
         return self._scanner_info.get("detectors", {})
 
-    def get_root_test_dirs(self) -> list[Path]:
+    def get_root_test_dirs(self) -> List[Path]:
         return []
 
-    def run(
-        self, detector_names: list[str], code_paths: list[Path], project_root: Path
+    async def run(
+        self, detector_names: List[str], code_paths: List[Path], project_root: Path
     ) -> MinimalScannerResponse:
         scanner_executable = self._scanner_path / "scanner"
         cmd = [
@@ -159,8 +160,19 @@ class ExecutableScannerRunner(AbstractScannerRunner):
         ]
 
         try:
-            process = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            raw_output = json.loads(process.stdout)
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    process.returncode or 1, cmd, output=stdout, stderr=stderr
+                )
+
+            raw_output = json.loads(stdout)
 
             return self._parse_scanner_output(raw_output)
 
@@ -233,12 +245,12 @@ class ScannerManager:
         cls()._initialize_scanners()
         cls._initialized = True
 
-    def execute_scan(
+    async def execute_scan(
         self,
-        detector_names: list[str],
-        code: list[Path],
+        detector_names: List[str],
+        code: List[Path],
         project_root: Path,
-        scanners: list[str] | None = None,
+        scanners: List[str] | None = None,
     ) -> dict[str, CompleteScannerResponse]:
         """
         Execute specified detectors using specified scanners (or else all scanners).
@@ -265,7 +277,7 @@ class ScannerManager:
             if scanner_name not in scanners:
                 continue
             try:
-                scanner_minimal_response = runner.run(
+                scanner_minimal_response = await runner.run(
                     detector_names, code, project_root
                 )
                 scanner_full_response = expand_response_minimal_to_full(
