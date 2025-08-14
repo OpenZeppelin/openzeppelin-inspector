@@ -37,6 +37,7 @@ from .detector_tester import run_detector_tests, NoTestFilesDiscoveredError
 from .scan_executor import ScanExecutor
 from . import scanner_registry
 
+
 async def main():
     """Fetch args and run the scan."""
 

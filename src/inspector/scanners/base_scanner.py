@@ -72,6 +72,7 @@ class ScanException(ScannerException):
 
     pass
 
+
 class BaseScanner(ABC):
     """
     Abstract base class defining the interface for single-file code scanners.

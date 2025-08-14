@@ -106,6 +106,7 @@ class AbstractScannerRunner(abc.ABC):
     ) -> MinimalScannerResponse:
         pass
 
+
 class PythonScannerRunner(AbstractScannerRunner):
     def __init__(self, scanner: BaseScanner, scanner_dir: str):
         self._scanner = scanner
@@ -161,9 +162,7 @@ class ExecutableScannerRunner(AbstractScannerRunner):
 
         try:
             process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await process.communicate()
 
