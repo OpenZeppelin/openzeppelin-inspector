@@ -75,16 +75,6 @@ def _restore_pyproject_dependencies(
     else:
         cmd = ["rye", "sync", "-f"]
     try:
-        result = subprocess.run(
-            cmd,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=PIP_INSTALL_TIMEOUT,
-            encoding="utf-8",
-            errors="replace",
-            cwd=req_path,
-        )
         logger.debug(f"Running command: {' '.join(cmd)}")
         result = subprocess.run(
             cmd,
@@ -94,6 +84,7 @@ def _restore_pyproject_dependencies(
             timeout=PIP_INSTALL_TIMEOUT,
             encoding="utf-8",
             errors="replace",
+            cwd=req_path if not pip_path else None,
         )
         logger.debug(f"pip install requirements output:\n{result.stdout}")
         if result.stderr:
