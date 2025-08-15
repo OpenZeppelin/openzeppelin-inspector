@@ -1,6 +1,5 @@
 import os
 import subprocess
-import enum
 import logging
 import shutil
 import urllib.request, urllib.error
@@ -86,14 +85,15 @@ def _restore_pyproject_dependencies(
             errors="replace",
             cwd=req_path if not pip_path else None,
         )
-        logger.debug(f"pip install requirements output:\n{result.stdout}")
+        package_manager_name = "pip" if pip_path else "rye"
+        logger.debug(f"{package_manager_name} install requirements output:\n{result.stdout}")
         if result.stderr:
-            logger.warning(f"pip install requirements stderr:\n{result.stderr}")
+            logger.warning(f"{package_manager_name} install requirements stderr:\n{result.stderr}")
         elif result.returncode == 0:
-            logger.info(f"pip install requirements succeeded")
+            logger.info(f"{package_manager_name} install requirements succeeded")
         else:
             logger.error(
-                f"pip install requirements failed with code {result.returncode}"
+                f"{package_manager_name} install requirements failed with code {result.returncode}"
             )
     except subprocess.CalledProcessError as e:
         raise DependencyInstallationError(
