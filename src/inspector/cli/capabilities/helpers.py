@@ -86,9 +86,13 @@ def _restore_pyproject_dependencies(
             cwd=req_path if not pip_path else None,
         )
         package_manager_name = "pip" if pip_path else "rye"
-        logger.debug(f"{package_manager_name} install requirements output:\n{result.stdout}")
+        logger.debug(
+            f"{package_manager_name} install requirements output:\n{result.stdout}"
+        )
         if result.stderr:
-            logger.warning(f"{package_manager_name} install requirements stderr:\n{result.stderr}")
+            logger.warning(
+                f"{package_manager_name} install requirements stderr:\n{result.stderr}"
+            )
         elif result.returncode == 0:
             logger.info(f"{package_manager_name} install requirements succeeded")
         else:
