@@ -297,5 +297,10 @@ async def main():
         raise SystemExit()
 
 
-if __name__ == "__main__":
+def main_entry():
+    import asyncio
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    main_entry()
