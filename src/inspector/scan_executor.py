@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Optional
 
 from .models._complete.scanner_response import CompleteScannerResponse
 from .scanner_manager import ScannerManager
@@ -13,10 +13,10 @@ class ScanExecutor:
 
     def __init__(
         self,
-        detectors_names: List[str],
-        source_code: List[str],
+        detectors_names: list[str],
+        source_code: list[str],
         project_root: str,
-        scanners: Optional[List[str]] = None,
+        scanners: Optional[list[str]] = None,
     ):
         self.detectors_names = detectors_names
         self.source_code = source_code

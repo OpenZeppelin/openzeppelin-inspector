@@ -298,8 +298,6 @@ async def main():
 
 
 def main_entry():
-    import asyncio
-
     asyncio.run(main())
 
 

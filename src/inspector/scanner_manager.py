@@ -27,7 +27,6 @@ import subprocess
 import sys
 import importlib
 import traceback
-from typing import List, Dict
 from .constants import PATH_USER_INSPECTOR_SCANNERS_VENVS
 from .models.minimal.scanner_response import MinimalScannerResponse
 from .models._complete.scanner_response import CompleteScannerResponse
@@ -140,14 +139,14 @@ class ExecutableScannerRunner(AbstractScannerRunner):
     def get_scanner_name(self) -> str:
         return self._scanner_name
 
-    def get_supported_detector_metadata(self) -> Dict[str, Dict]:
+    def get_supported_detector_metadata(self) -> dict[str, dict]:
         return self._scanner_info.get("detectors", {})
 
-    def get_root_test_dirs(self) -> List[Path]:
+    def get_root_test_dirs(self) -> list[Path]:
         return []
 
     async def run(
-        self, detector_names: List[str], code_paths: List[Path], project_root: Path
+        self, detector_names: list[str], code_paths: list[Path], project_root: Path
     ) -> MinimalScannerResponse:
         scanner_executable = self._scanner_path / "scanner"
         cmd = [
@@ -246,10 +245,10 @@ class ScannerManager:
 
     async def execute_scan(
         self,
-        detector_names: List[str],
-        code: List[Path],
+        detector_names: list[str],
+        code: list[Path],
         project_root: Path,
-        scanners: List[str] | None = None,
+        scanners: list[str] | None = None,
     ) -> dict[str, CompleteScannerResponse]:
         """
         Execute specified detectors using specified scanners (or else all scanners).
