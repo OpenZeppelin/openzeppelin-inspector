@@ -17,6 +17,8 @@ from .exceptions import DependencyInstallationError, ExtractionError, DownloadEr
 
 logger: Logger = logging.getLogger(__name__)
 
+DEPENDENCY_INSTALL_TIMEOUT = 600  # seconds (10 minutes)
+
 
 def _get_scanner_paths(scanner_name: str) -> Tuple[Path, Path]:
     """Returns the installation and venv paths for a scanner."""
@@ -61,7 +63,6 @@ def _restore_pyproject_dependencies(
     req_path: Path, logger: Logger, pip_path: Optional[Path] = None
 ) -> None:
     """A wrapper that can restore unmanaged (pip) and managed (rye / uv) Python projects"""
-    PIP_INSTALL_TIMEOUT = 600  # seconds (10 minutes)
     if pip_path:
         cmd = [
             str(pip_path),
@@ -80,7 +81,7 @@ def _restore_pyproject_dependencies(
             check=True,
             capture_output=True,
             text=True,
-            timeout=PIP_INSTALL_TIMEOUT,
+            timeout=DEPENDENCY_INSTALL_TIMEOUT,
             encoding="utf-8",
             errors="replace",
             cwd=req_path if not pip_path else None,
