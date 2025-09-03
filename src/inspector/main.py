@@ -3,6 +3,7 @@ from .setup_logging import initialize_logging
 
 initialize_logging()
 
+import asyncio
 import os
 import json
 from time import time
@@ -25,7 +26,6 @@ from .cli.capabilities.exceptions import (
 )
 from .response_finalizer import responses_finalizer
 
-
 from .composer import FindingComposer
 from .helpers import (
     get_version_info,
@@ -38,7 +38,7 @@ from .scan_executor import ScanExecutor
 from . import scanner_registry
 
 
-def main():
+async def main():
     """Fetch args and run the scan."""
 
     # start timing how long the program takes to execute
@@ -179,7 +179,7 @@ def main():
     elif args.mode == "test":
         status_spinner.start("Running tests... this may take a while...")
         try:
-            test_results, test_has_failures, test_report = run_detector_tests(
+            test_results, test_has_failures, test_report = await run_detector_tests(
                 args.scanners,
                 args.detector_names,
                 args.leave_test_annotations,
@@ -210,7 +210,7 @@ def main():
                 scanners=args.scanners,
             )
             # execute the scan
-            scanner_responses = scan_executor.execute()
+            scanner_responses = await scan_executor.execute()
             # Complete the responses
             finalized_scanner_responses, finalized_scanned_files = responses_finalizer(
                 scanner_responses
@@ -297,5 +297,9 @@ def main():
         raise SystemExit()
 
 
+def main_entry():
+    asyncio.run(main())
+
+
 if __name__ == "__main__":
-    main()
+    main_entry()

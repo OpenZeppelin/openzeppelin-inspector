@@ -79,7 +79,7 @@ class MockScanner(BaseScanner):
 
         return cls._cached_root_test_dirs
 
-    def run(
+    async def run(
         self,
         detector_names: list[str],
         code_paths: list[Path],

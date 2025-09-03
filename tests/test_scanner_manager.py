@@ -6,13 +6,11 @@ from logging import Logger
 from pathlib import Path
 
 from inspector.scanner_manager import ScannerManager, PythonScannerRunner
-from inspector.scanners import BaseScanner
-
 
 logger: Logger = logging.getLogger(__name__)
 
 
-class TestScannerManager(unittest.TestCase):
+class TestScannerManager(unittest.IsolatedAsyncioTestCase):
     MOCK_SCANNER_PATH = "tests/utils/mock_scanner"
 
     @classmethod
@@ -78,11 +76,11 @@ class TestScannerManager(unittest.TestCase):
             any(detector["id"].startswith("mock") for detector in metadata.values())
         )
 
-    def test_scanner_execution(self):
+    async def test_scanner_execution(self):
         """Test executing mock scanner on a test file."""
         manager = ScannerManager()
         test_file = Path("tests/utils/files/TestContract.sol")
-        results = manager.execute_scan(
+        results = await manager.execute_scan(
             ["mock-test-detector"], [test_file], test_file.parent, ["mock-scanner"]
         )
         self.assertIn("mock-scanner", results)
