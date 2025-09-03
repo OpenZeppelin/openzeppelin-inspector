@@ -353,7 +353,7 @@ def format_differences_json(results: dict[str, ScannerResults]) -> str:
     return json.dumps(differences, indent=2)
 
 
-def scan_with_single_detector_test_project(
+async def scan_with_single_detector_test_project(
     detector_name: str,
     test_project_name: str,
     test_files: list[Path],
@@ -410,7 +410,7 @@ def scan_with_single_detector_test_project(
             logger.info(f"Stripped test annotation from {len(clean_files)} test files")
 
             # Run the scan on the clean files using the temporary project directory
-            response = ScannerManager().execute_scan(
+            response = await ScannerManager().execute_scan(
                 [detector_name], clean_files, temp_project_dir, scanners
             )
 
@@ -448,7 +448,7 @@ def scan_with_single_detector_test_project(
         # Run the scan directly on the original test files
         logger.info(f"Testing with original test files (clean_projects=False)")
 
-        response = ScannerManager().execute_scan(
+        response = await ScannerManager().execute_scan(
             [detector_name], test_files, test_dir, scanners
         )
 
@@ -570,7 +570,7 @@ def create_detector_test_report(
     return report
 
 
-def run_detector_tests(
+async def run_detector_tests(
     scanners: list[str],
     detectors: list[str],
     leave_test_annotations: bool = False,
@@ -658,7 +658,7 @@ def run_detector_tests(
             )
 
             # Scan with this detector and test_project
-            per_test_project_findings = scan_with_single_detector_test_project(
+            per_test_project_findings = await scan_with_single_detector_test_project(
                 detector_name,
                 test_project_name,
                 test_files,

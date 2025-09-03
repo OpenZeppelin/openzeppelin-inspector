@@ -184,7 +184,7 @@ class BaseScanner(ABC):
         pass
 
     @abstractmethod
-    def run(
+    async def run(
         self,
         detector_names: list[str],
         code_paths: list[Path],

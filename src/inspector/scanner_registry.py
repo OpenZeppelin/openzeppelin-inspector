@@ -11,6 +11,7 @@ The registry is loaded once when the module is imported and can be reloaded on d
 import json
 import logging
 from pathlib import Path
+from typing import Optional
 from .constants import PATH_USER_INSPECTOR_SCANNERS_REGISTRY
 
 _logger = logging.getLogger(__name__)
@@ -118,7 +119,7 @@ def get_installed_scanner_names() -> list[str]:
     return list(_registry.keys())
 
 
-def get_scanner_info(scanner_name: str) -> dict | None:
+def get_scanner_info(scanner_name: str) -> Optional[dict]:
     """
     Get metadata for a specific scanner by name.
 
@@ -326,7 +327,7 @@ def get_scanners_by_criteria(
     detectors: list[str] | None = None,
     tags: list[str] | None = None,
     severities: list[str] | None = None,
-) -> list[dict]:
+) -> list:
     """
     Retrieve scanners matching the specified detectors, tags, or severities.
 
@@ -356,6 +357,7 @@ def get_scanners_by_criteria(
             matching_scanners.append({**scanner_info, "name": scanner_name})
             break
 
+    # FIXME clarify the return type and this function usage
     return sorted(matching_scanners, key=lambda x: x["name"])
 
 

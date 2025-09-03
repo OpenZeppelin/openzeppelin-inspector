@@ -64,7 +64,7 @@ dependencies = [
 # Creates a CLI command that invokes the entry-point function 
 [project.scripts]
 # command = entry-point
-inspector = "inspector.main:main"
+inspector = "inspector.main:main_entry"
 
 [project.urls]
 "Homepage" = "https://github.com/OpenZeppelin/openzeppelin-inspector"
