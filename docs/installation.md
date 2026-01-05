@@ -64,8 +64,8 @@ If you prefer to run OpenZeppelin Inspector directly from the source code, follo
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/OpenZeppelin/contract-inspector.git
-   cd contract-inspector
+   git clone https://github.com/OpenZeppelin/openzeppelin-inspector.git
+   cd openzeppelin-inspector
    ```
 
 2. Install the required dependencies:
