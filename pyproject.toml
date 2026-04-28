@@ -9,7 +9,7 @@ name = "inspector"
 dynamic = ["version"]
 description = "An orchestartion framework for analysis of web3 projects and source code"
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.14"
 authors = [
     { name = "Andrew D. Anderson", email = "34364155+CallMeGwei@users.noreply.github.com" },
     { name = "Josep Chetrit", email = "92144922+josepchetrit12@users.noreply.github.com" },
