@@ -22,15 +22,16 @@ from .exceptions import (
     DependencyInstallationError,
 )
 from .helpers import (
+    _get_pip_path,
     _remove_dir_or_link,
     _remove_existing_installation,
+    _restore_pyproject_dependencies,
 )
 from .scanners_installable import InstallableScanner
 from ...scanner_manager import VenvPathManager
 
 logger: Logger = logging.getLogger(__name__)
 
-PIP_INSTALL_TIMEOUT = 600  # seconds (10 minutes)
 PIP_EDITABLE_INSTALL_TIMEOUT = 300  # seconds (5 minutes)
 # files that should never be copied from scanner source into the installation location
 SENSITIVE_PATTERNS = {
@@ -176,20 +177,7 @@ class PythonInstallableScanner(InstallableScanner):
         except Exception as e:
             raise DependencyInstallationError(f"Failed creating venv: {str(e)}")
 
-        # Construct the path to the pip executable within the venv
-        if os.name == "nt":  # Windows
-            pip_path = self.installer._venv_path / "Scripts" / "pip.exe"
-        else:  # Linux, macOS, etc.
-            pip_path = self.installer._venv_path / "bin" / "pip"
-
-        if not pip_path or not pip_path.exists():
-            logger.error(
-                f"Could not find pip executable at expected location: {pip_path}"
-            )
-            raise DependencyInstallationError(
-                f"Could not find pip executable in created venv: {self.installer._venv_path}"
-            )
-
+        pip_path = _get_pip_path(self.installer._venv_path)
         is_effective_develop = self.is_effective_develop()
         req_file_name = (
             "requirements-dev.txt" if is_effective_develop else "requirements.txt"
@@ -218,47 +206,16 @@ class PythonInstallableScanner(InstallableScanner):
 
         if req_path and req_path.is_file():
             logger.info(f"Installing dependencies from {req_path.name}")
-            cmd = [
-                str(pip_path),
-                "install",
-                "--disable-pip-version-check",
-                "--no-cache-dir",  # Avoid potential caching issues
-                "-r",
-                str(req_path),
-            ]
-            try:
-                logger.debug(f"Running command: {' '.join(cmd)}")
-                result = subprocess.run(
-                    cmd,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=PIP_INSTALL_TIMEOUT,
-                    encoding="utf-8",
-                    errors="replace",
-                )
-                logger.debug(f"pip install requirements output:\n{result.stdout}")
-                if result.stderr:
-                    logger.warning(f"pip install requirements stderr:\n{result.stderr}")
-            except subprocess.CalledProcessError as e:
-                raise DependencyInstallationError(
-                    f"Failed installing deps from {req_path.name}: {e.stderr or e.stdout}"
-                )
-            except subprocess.TimeoutExpired:
-                raise DependencyInstallationError(
-                    f"Timeout installing deps from {req_path.name}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"Unexpected error installing requirements: {e}", exc_info=True
-                )
-                raise DependencyInstallationError(
-                    f"Unexpected error installing requirements from {req_path.name}: {str(e)}"
-                ) from e
+            _restore_pyproject_dependencies(req_path, logger, pip_path)
         else:
             logger.debug(
                 f"No suitable requirements file found, skipping pip install -r."
             )
+            logger.debug(f"Trying to install dependencies with `rye`")
+            try:
+                _restore_pyproject_dependencies(self.installer._install_path, logger)
+            except Exception as e:
+                logger.error(f"Failed installing dependencies with `rye`: {e}")
 
         # Always try to install the package itself using -e for Python scanners
         # This ensures the scanner code is runnable from the venv

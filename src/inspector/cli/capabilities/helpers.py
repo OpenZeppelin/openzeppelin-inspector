@@ -1,19 +1,23 @@
+import os
+import subprocess
 import logging
 import shutil
 import urllib.request, urllib.error
 import zipfile
 from logging import Logger
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 from ...constants import (
     PATH_USER_INSPECTOR_SCANNERS,
     PATH_USER_INSPECTOR_SCANNERS_VENVS,
 )
-from .exceptions import ExtractionError, DownloadError
+from .exceptions import DependencyInstallationError, ExtractionError, DownloadError
 
 
 logger: Logger = logging.getLogger(__name__)
+
+DEPENDENCY_INSTALL_TIMEOUT = 600  # seconds (10 minutes)
 
 
 def _get_scanner_paths(scanner_name: str) -> Tuple[Path, Path]:
@@ -38,6 +42,77 @@ def _remove_dir_or_link(path: Path) -> bool:
         logger.error(f"Failed to remove path {path}: {e}")
         return False
     return True
+
+
+def _get_pip_path(venv_path: Path) -> Path:
+    # Construct the path to the pip executable within the venv
+    if os.name == "nt":  # Windows
+        pip_path = venv_path / "Scripts" / "pip.exe"
+    else:  # Linux, macOS, etc.
+        pip_path = venv_path / "bin" / "pip"
+
+    if not pip_path or not pip_path.exists():
+        logger.error(f"Could not find pip executable at expected location: {pip_path}")
+        raise DependencyInstallationError(
+            f"Could not find pip executable in created venv: {venv_path}"
+        )
+    return pip_path
+
+
+def _restore_pyproject_dependencies(
+    req_path: Path, logger: Logger, pip_path: Optional[Path] = None
+) -> None:
+    """A wrapper that can restore unmanaged (pip) and managed (rye / uv) Python projects"""
+    if pip_path:
+        cmd = [
+            str(pip_path),
+            "install",
+            "--disable-pip-version-check",
+            "--no-cache-dir",  # Avoid potential caching issues
+            "-r",
+            str(req_path),
+        ]
+    else:
+        cmd = ["rye", "sync", "-f"]
+    try:
+        logger.debug(f"Running command: {' '.join(cmd)}")
+        result = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=DEPENDENCY_INSTALL_TIMEOUT,
+            encoding="utf-8",
+            errors="replace",
+            cwd=req_path if not pip_path else None,
+        )
+        package_manager_name = "pip" if pip_path else "rye"
+        logger.debug(
+            f"{package_manager_name} install requirements output:\n{result.stdout}"
+        )
+        if result.stderr:
+            logger.warning(
+                f"{package_manager_name} install requirements stderr:\n{result.stderr}"
+            )
+        elif result.returncode == 0:
+            logger.info(f"{package_manager_name} install requirements succeeded")
+        else:
+            logger.error(
+                f"{package_manager_name} install requirements failed with code {result.returncode}"
+            )
+    except subprocess.CalledProcessError as e:
+        raise DependencyInstallationError(
+            f"Failed installing deps from {req_path.name}: {e.stderr or e.stdout}"
+        )
+    except subprocess.TimeoutExpired:
+        raise DependencyInstallationError(
+            f"Timeout installing deps from {req_path.name}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error installing requirements: {e}", exc_info=True)
+        raise DependencyInstallationError(
+            f"Unexpected error installing requirements from {req_path.name}: {str(e)}"
+        ) from e
 
 
 def _remove_existing_installation(scanner_name: str) -> bool:
